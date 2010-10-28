@@ -1,0 +1,207 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		024096341265E1EB00925952 /* ruby-sanspleur */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 0240963D1265E20200925952 /* Build configuration list for PBXAggregateTarget "ruby-sanspleur" */;
+			buildPhases = (
+				024096331265E1EB00925952 /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = "ruby-sanspleur";
+			productName = "ruby-prof";
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXFileReference section */
+		0240979C1265EB6100925952 /* Rakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Rakefile; sourceTree = "<group>"; };
+		0240979F1265EB7300925952 /* debug.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = debug.c; sourceTree = "<group>"; };
+		024097A01265EB7300925952 /* debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug.h; sourceTree = "<group>"; };
+		024097A11265EB7300925952 /* extconf.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = extconf.rb; sourceTree = "<group>"; };
+		024097B41265EB7300925952 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
+		024097BD1265F1E500925952 /* thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thread.h; sourceTree = "<group>"; };
+		024097BE1265F1E500925952 /* thread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = thread.c; sourceTree = "<group>"; };
+		0240FD29126845A600925952 /* sampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sampler.h; sourceTree = "<group>"; };
+		0240FD2A126845A600925952 /* sampler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sampler.c; sourceTree = "<group>"; };
+		025510C512786E2500746143 /* ruby-sanspleur */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ruby-sanspleur"; sourceTree = "<group>"; };
+		025511961279882300746143 /* ruby-sanspleur.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = "ruby-sanspleur.rb"; sourceTree = "<group>"; };
+		025511971279882300746143 /* unsanspleur.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = unsanspleur.rb; sourceTree = "<group>"; };
+		025511981279884100746143 /* ruby_sanspleur.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ruby_sanspleur.c; sourceTree = "<group>"; };
+		025511991279884100746143 /* ruby_sanspleur.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ruby_sanspleur.h; sourceTree = "<group>"; };
+		025511C71279B59500746143 /* CHANGES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CHANGES; sourceTree = "<group>"; };
+		025511C81279B59500746143 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		025511C91279B59500746143 /* README.rdoc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.rdoc; sourceTree = "<group>"; };
+		025511CA1279B59500746143 /* todo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = todo; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		024096041265E15100925952 = {
+			isa = PBXGroup;
+			children = (
+				025511C71279B59500746143 /* CHANGES */,
+				025511C81279B59500746143 /* LICENSE */,
+				025511C91279B59500746143 /* README.rdoc */,
+				025511CA1279B59500746143 /* todo */,
+				025510CE1278707C00746143 /* lib */,
+				025510C412786E2500746143 /* bin */,
+				0240979C1265EB6100925952 /* Rakefile */,
+				0240979D1265EB7300925952 /* ext */,
+			);
+			sourceTree = "<group>";
+		};
+		0240979D1265EB7300925952 /* ext */ = {
+			isa = PBXGroup;
+			children = (
+				0240979E1265EB7300925952 /* ruby_sanspleur */,
+			);
+			path = ext;
+			sourceTree = "<group>";
+		};
+		0240979E1265EB7300925952 /* ruby_sanspleur */ = {
+			isa = PBXGroup;
+			children = (
+				0240979F1265EB7300925952 /* debug.c */,
+				024097A01265EB7300925952 /* debug.h */,
+				024097A11265EB7300925952 /* extconf.rb */,
+				025511981279884100746143 /* ruby_sanspleur.c */,
+				025511991279884100746143 /* ruby_sanspleur.h */,
+				024097B41265EB7300925952 /* version.h */,
+				024097BD1265F1E500925952 /* thread.h */,
+				024097BE1265F1E500925952 /* thread.c */,
+				0240FD29126845A600925952 /* sampler.h */,
+				0240FD2A126845A600925952 /* sampler.c */,
+			);
+			path = ruby_sanspleur;
+			sourceTree = "<group>";
+		};
+		025510C412786E2500746143 /* bin */ = {
+			isa = PBXGroup;
+			children = (
+				025510C512786E2500746143 /* ruby-sanspleur */,
+			);
+			path = bin;
+			sourceTree = "<group>";
+		};
+		025510CE1278707C00746143 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				025511961279882300746143 /* ruby-sanspleur.rb */,
+				025511971279882300746143 /* unsanspleur.rb */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		024096061265E15100925952 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 024096091265E15100925952 /* Build configuration list for PBXProject "ruby-prof" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 024096041265E15100925952;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				024096341265E1EB00925952 /* ruby-sanspleur */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		024096331265E1EB00925952 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here\n\ncd ${SOURCE_ROOT}\nrake gem\n\"${REE_GEM_PATH}\" install pkg/ruby-sanspleur-0.9.4.gem\n\nexit 0";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		024096071265E15100925952 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				REE_GEM_PATH = "${REE_PATH}bin/gem";
+				REE_IRB_PATH = "${REE_PATH}bin/irb";
+				REE_PATH = /usr/;
+			};
+			name = Debug;
+		};
+		024096081265E15100925952 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				REE_GEM_PATH = "${REE_PATH}bin/gem";
+				REE_IRB_PATH = "${REE_PATH}bin/irb";
+				REE_PATH = /usr/;
+			};
+			name = Release;
+		};
+		024096351265E1EB00925952 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "ruby-prof";
+			};
+			name = Debug;
+		};
+		024096361265E1EB00925952 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = "ruby-prof";
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		024096091265E15100925952 /* Build configuration list for PBXProject "ruby-prof" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				024096071265E15100925952 /* Debug */,
+				024096081265E15100925952 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0240963D1265E20200925952 /* Build configuration list for PBXAggregateTarget "ruby-sanspleur" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				024096351265E1EB00925952 /* Debug */,
+				024096361265E1EB00925952 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 024096061265E15100925952 /* Project object */;
+}
