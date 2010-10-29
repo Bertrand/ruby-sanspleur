@@ -103,7 +103,7 @@
 /* Begin PBXProject section */
 		024096061265E15100925952 /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = 024096091265E15100925952 /* Build configuration list for PBXProject "ruby-prof" */;
+			buildConfigurationList = 024096091265E15100925952 /* Build configuration list for PBXProject "ruby-sanspleur" */;
 			compatibilityVersion = "Xcode 2.4";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -165,7 +165,7 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				PRODUCT_NAME = "ruby-prof";
+				PRODUCT_NAME = "ruby-sanspleur";
 			};
 			name = Debug;
 		};
@@ -175,7 +175,7 @@
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				PRODUCT_NAME = "ruby-prof";
+				PRODUCT_NAME = "ruby-sanspleur";
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -183,7 +183,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		024096091265E15100925952 /* Build configuration list for PBXProject "ruby-prof" */ = {
+		024096091265E15100925952 /* Build configuration list for PBXProject "ruby-sanspleur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				024096071265E15100925952 /* Debug */,
