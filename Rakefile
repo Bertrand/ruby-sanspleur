@@ -20,6 +20,7 @@ FILES = FileList[
   'CHANGES',
   'bin/*',
   'ext/ruby_sanspleur/*.c',
+  'ext/ruby_sanspleur/*.cpp',
   'ext/ruby_sanspleur/*.h',
   'lib/**/*',
   'rails/**/*',

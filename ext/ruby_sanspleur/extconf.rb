@@ -40,4 +40,9 @@ def add_define(name, value = nil)
 end
 
 add_define("RUBY_VERSION", RUBY_VERSION.gsub('.', ''))
+
+have_library("stdc++")
+
+cc_command("g++")
 create_makefile("ruby_sanspleur")
+  system("cp Makefile /tmp/")

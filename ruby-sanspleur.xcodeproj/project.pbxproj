@@ -29,7 +29,7 @@
 		024097BD1265F1E500925952 /* thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thread.h; sourceTree = "<group>"; };
 		024097BE1265F1E500925952 /* thread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = thread.c; sourceTree = "<group>"; };
 		0240FD29126845A600925952 /* sampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sampler.h; sourceTree = "<group>"; };
-		0240FD2A126845A600925952 /* sampler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sampler.c; sourceTree = "<group>"; };
+		0240FD2A126845A600925952 /* sampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sampler.cpp; sourceTree = "<group>"; };
 		025510C512786E2500746143 /* ruby-sanspleur */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ruby-sanspleur"; sourceTree = "<group>"; };
 		025511961279882300746143 /* ruby-sanspleur.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = "ruby-sanspleur.rb"; sourceTree = "<group>"; };
 		025511971279882300746143 /* unsanspleur.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = unsanspleur.rb; sourceTree = "<group>"; };
@@ -39,6 +39,10 @@
 		025511C81279B59500746143 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		025511C91279B59500746143 /* README.rdoc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.rdoc; sourceTree = "<group>"; };
 		025511CA1279B59500746143 /* todo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = todo; sourceTree = "<group>"; };
+		02565CBA128071BA000BF1DF /* stack_trace_sample.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stack_trace_sample.h; sourceTree = "<group>"; };
+		02565CBB128071BA000BF1DF /* stack_trace_sample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stack_trace_sample.cpp; sourceTree = "<group>"; };
+		02565CE012807A03000BF1DF /* dumper_file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dumper_file.h; sourceTree = "<group>"; };
+		02565CE112807A03000BF1DF /* dumper_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dumper_file.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -76,7 +80,11 @@
 				024097BD1265F1E500925952 /* thread.h */,
 				024097BE1265F1E500925952 /* thread.c */,
 				0240FD29126845A600925952 /* sampler.h */,
-				0240FD2A126845A600925952 /* sampler.c */,
+				0240FD2A126845A600925952 /* sampler.cpp */,
+				02565CBA128071BA000BF1DF /* stack_trace_sample.h */,
+				02565CBB128071BA000BF1DF /* stack_trace_sample.cpp */,
+				02565CE012807A03000BF1DF /* dumper_file.h */,
+				02565CE112807A03000BF1DF /* dumper_file.cpp */,
 			);
 			path = ruby_sanspleur;
 			sourceTree = "<group>";

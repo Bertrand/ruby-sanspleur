@@ -7,6 +7,14 @@
  *
  */
 
-int sanspleur_start_thread(unsigned long long usleep_value);
-int sanspleur_stop_thread(void);
-int sanspleur_did_thread_tick(void);
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
+	int sanspleur_start_thread(unsigned long long usleep_value);
+	int sanspleur_stop_thread(void);
+	int sanspleur_did_thread_tick(void);
+
+#ifdef __cplusplus 
+}
+#endif

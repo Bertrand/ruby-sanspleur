@@ -7,10 +7,25 @@
  *
  */
 
-#include <ruby.h>
+#define COPY_RUBY_STRING 0
 
-VALUE sanspleur_set_current_thread_to_sample(VALUE self);
-VALUE sanspleur_start_sample(VALUE self, VALUE usleep_value, VALUE info);
-VALUE sanspleur_stop_sample(VALUE self, VALUE file_name);
-VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE info, VALUE file_name);
-VALUE sanspleur_dump_last_sample(VALUE self);
+//#define DEBUG_PRINTF(...) printf(__VA_ARGS__)
+#define DEBUG_PRINTF(...)
+
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
+#include <ruby.h>
+#include <env.h>
+#include <node.h>
+
+	VALUE sanspleur_set_current_thread_to_sample(VALUE self);
+	VALUE sanspleur_start_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE info);
+	VALUE sanspleur_stop_sample(VALUE self);
+	VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE info);
+	
+	char *sanspleur_copy_string(const char *string);
+#ifdef __cplusplus 
+}
+#endif
