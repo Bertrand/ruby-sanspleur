@@ -18,7 +18,7 @@ class DumperFile
 		int _usleep_value;
 	
 		void write_header(const char *info);
-		void write_stack_line_in_file(struct stack_line *line, int time_spent);
+		void write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace);
 		void write_stack_trace_sample_header(StackTraceSample* sample);
 //		void write_stack_trace_sample(StackTraceSample* sample);
 		

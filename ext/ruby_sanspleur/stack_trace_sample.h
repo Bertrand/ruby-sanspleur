@@ -23,6 +23,9 @@ struct stack_trace {
 	struct stack_line *stack_line;
 	struct stack_trace *next_stack_trace;
     int thread_ticks;
+	
+	int ruby_event;
+	const char *call_method;
 };
 
 class StackTraceSample {

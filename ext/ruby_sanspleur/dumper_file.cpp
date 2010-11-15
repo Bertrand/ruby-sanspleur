@@ -81,7 +81,7 @@ void DumperFile::write_stack_trace(struct stack_trace *trace)
 
 		line = trace->stack_line;
 		while (line) {
-			write_stack_line_in_file(line, trace->thread_ticks * _usleep_value);
+			write_stack_line_in_file(line, trace);
 			line = line->next_stack_line;
 			depth++;
 		}
@@ -89,21 +89,29 @@ void DumperFile::write_stack_trace(struct stack_trace *trace)
 	}
 }
 
-void DumperFile::write_stack_line_in_file(struct stack_line *line, int time_spent)
+void DumperFile::write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace)
 {
 	// thread id, time, file, stack depth, type, ns, function, symbol
-	fprintf(_file, "1"); // thread id
+	fprintf(_file, "1"); // 0: thread id
 	fprintf(_file, "\t");
-	fprintf(_file, "%d", time_spent);  // time
+	fprintf(_file, "%d", trace->thread_ticks * _usleep_value);  // 1: time
 	fprintf(_file, "\t");
-	fprintf(_file, "%s", line->file_name);  // file
+	if (line->file_name) {
+		fprintf(_file, "%s", line->file_name);  // 2: file
+	}
 	fprintf(_file, "\t");
-	fprintf(_file, "%d", line->line_number);  // line number
+	fprintf(_file, "%d", line->line_number);  // 3: line number
 	fprintf(_file, "\t");
-	fprintf(_file, "type");  // type
+	fprintf(_file, "%p", trace->ruby_event);  // 4: type
 	fprintf(_file, "\t");
-	fprintf(_file, "%p", (void *)line->function_id);  // function id
+	if (line->function_id) {
+		fprintf(_file, "%p", (void *)line->function_id);  // 5: function id
+	}
 	fprintf(_file, "\t");
-	fprintf(_file, "%s", line->function_name);  // ns
+	if (line->function_name) {
+		fprintf(_file, "%s", line->function_name);  // 6: function name
+	}
+	fprintf(_file, "\t");
+	fprintf(_file, "%s", trace->call_method); // 7: call method
 	fprintf(_file, "\n");
 }

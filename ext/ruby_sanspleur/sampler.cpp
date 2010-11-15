@@ -48,6 +48,9 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		
 		new_trace = (struct stack_trace *)calloc(1, sizeof(*new_trace));
         new_trace->thread_ticks = ticks_count;
+		new_trace->ruby_event = event;
+		new_trace->call_method = sanspleur_copy_string(rb_id2name(mid));
+		
 		for (; frame && (n = frame->node); frame = frame->prev) {
 			const char *function_name = NULL;
 			struct stack_line *new_line;

@@ -71,6 +71,7 @@ StackTraceSample::~StackTraceSample()
         
 		empty_stack_line(_first_stack_trace->stack_line);
 		tmp = _first_stack_trace->next_stack_trace;
+		free((void *)_first_stack_trace->call_method);
 		free(_first_stack_trace);
 		_first_stack_trace = tmp;
 	}
