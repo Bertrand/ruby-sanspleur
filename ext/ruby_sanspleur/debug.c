@@ -73,7 +73,7 @@ void set_timer (int signal)
       printf("setitimer %d\n", setitimer (ITIMER_VIRTUAL, &timer, &previous_timer));
   }
   
-    printf("previous timer %d %d %d %d\n", (int)previous_timer.it_value.tv_sec, previous_timer.it_value.tv_usec, (int)previous_timer.it_interval.tv_sec, previous_timer.it_interval.tv_usec);
+    printf("previous timer %d %d %d %d\n", (int)previous_timer.it_value.tv_sec, (int)previous_timer.it_value.tv_usec, (int)previous_timer.it_interval.tv_sec, (int)previous_timer.it_interval.tv_usec);
 }
 
 void test_timer()
