@@ -26,9 +26,10 @@ extern "C" {
 
 static rb_thread_t thread_to_sample = NULL;
 
-StackTraceSample *sample = NULL;
-DumperFile *dumper = NULL;
-int usleep_value = 0;
+static StackTraceSample *sample = NULL;
+static DumperFile *dumper = NULL;
+static int usleep_value = 0;
+static int skip_writting = 0;
 
 #ifdef RUBY_VM
 static void sanspleur_sampler_event_hook(rb_event_flag_t event, VALUE data, VALUE self, ID mid, VALUE klass)
@@ -161,6 +162,9 @@ VALUE sanspleur_start_sample(VALUE self, VALUE usleep_value, VALUE file_name, VA
 	usleep_value = NUM2INT(usleep_value);
 	dumper = new DumperFile(StringValueCStr(file_name));
 	dumper->open_file_with_sample(usleep_value, info_string);
+	if (skip_writting) {
+		dumper->skip_writting(true);
+	}
 	sanspleur_start_thread(usleep_value);
 	sanspleur_install_sampler_hook();
 	return Qnil;
@@ -178,6 +182,7 @@ VALUE sanspleur_stop_sample(VALUE self)
 		delete dumper;
 		dumper = NULL;
 	}
+	skip_writting = 0;
 	
 	DEBUG_PRINTF("thread called %d, stack trace %d\n", sample.thread_called_count, sample.stack_trace_record_count);
 	return Qnil;
@@ -194,6 +199,13 @@ VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE in
 	sanspleur_start_sample(self, usleep_value, file_name, info);
 	rb_protect(rb_yield, self, &result);
 	return sanspleur_stop_sample(self);
+}
+
+VALUE sanspleur_skip_writting_to_debug(VALUE self, VALUE skip)
+{
+	skip_writting = NUM2INT(skip);
+//	skip_writting = strcmp("true", StringValueCStr(skip));
+	return Qnil;
 }
 
 }

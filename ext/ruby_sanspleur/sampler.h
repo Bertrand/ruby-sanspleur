@@ -24,6 +24,7 @@ extern "C" {
 	VALUE sanspleur_start_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE info);
 	VALUE sanspleur_stop_sample(VALUE self);
 	VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE info);
+	VALUE sanspleur_skip_writting_to_debug(VALUE self, VALUE skip);
 	
 	char *sanspleur_copy_string(const char *string);
 #ifdef __cplusplus 
