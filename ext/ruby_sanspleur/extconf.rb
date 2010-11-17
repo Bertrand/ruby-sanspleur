@@ -38,6 +38,8 @@ def add_define(name, value = nil)
     $defs.push("-D#{name}")
   end
 end
+# $CFLAGS = "-fPIC -g $(cflags) -O0"
+# $CPPFLAGS += " -O0"
 
 add_define("RUBY_VERSION", RUBY_VERSION.gsub('.', ''))
 
@@ -45,4 +47,5 @@ have_library("stdc++")
 
 cc_command("g++")
 create_makefile("ruby_sanspleur")
-  system("cp Makefile /tmp/")
+#  system("cp Makefile /tmp/")
+#  system("pwd > /tmp/pwd")
