@@ -1,0 +1,5 @@
+to build:
+gem uninstall -ax ruby-sanspleur ; rm pkg/* ; rake gem ; gem install pkg/ruby-sanspleur-1.0.3.gem
+
+to upload:
+rake ops:upload_gems FOLDER=../ruby-sanspleur/pkg/ REGEXP=ruby-sanspleur
