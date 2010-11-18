@@ -37,7 +37,7 @@ class DumperFile
 		~DumperFile();
 		
 		void open_file_with_sample(int usleep_value, const char *info);
-		void close_file();
+		void close_file_with_info(const char *info);
 		void write_stack_trace(struct stack_trace *trace);
 		void skip_writting(bool skip);
 };

@@ -19,7 +19,7 @@ void Init_ruby_sanspleur()
 	
     rb_define_module_function(sanspleurModule, "set_current_thread_to_sample", sanspleur_set_current_thread_to_sample, 0);
     rb_define_module_function(sanspleurModule, "start_sample", sanspleur_start_sample, 3);
-    rb_define_module_function(sanspleurModule, "stop_sample", sanspleur_stop_sample, 0);
-    rb_define_module_function(sanspleurModule, "sample", sanspleur_sample, 3);
+    rb_define_module_function(sanspleurModule, "stop_sample", sanspleur_stop_sample, 1);
+    rb_define_module_function(sanspleurModule, "sample", sanspleur_sample, 4);
     rb_define_module_function(sanspleurModule, "skip_writting_to_debug", sanspleur_skip_writting_to_debug, 1);
 }

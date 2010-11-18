@@ -170,7 +170,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE usleep_value, VALUE file_name, VA
 	return Qnil;
 }
 
-VALUE sanspleur_stop_sample(VALUE self)
+VALUE sanspleur_stop_sample(VALUE self, VALUE info)
 {
 	struct FRAME *test = ruby_frame;
 	int count = 0;
@@ -179,6 +179,12 @@ VALUE sanspleur_stop_sample(VALUE self)
 	sanspleur_stop_thread();
 	
 	if (dumper) {
+		const char *info_string = NULL;
+		
+		if (info) {
+			info_string = StringValueCStr(info);
+		}
+		dumper->close_file_with_info(info_string);
 		delete dumper;
 		dumper = NULL;
 	}
@@ -188,7 +194,7 @@ VALUE sanspleur_stop_sample(VALUE self)
 	return Qnil;
 }
 
-VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE info)
+VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE begin_info, VALUE end_info)
 {
 	int result;
 
@@ -196,9 +202,9 @@ VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE in
 		rb_raise(rb_eArgError, "A block must be provided to the profile method.");
 	}
 	
-	sanspleur_start_sample(self, usleep_value, file_name, info);
+	sanspleur_start_sample(self, usleep_value, file_name, begin_info);
 	rb_protect(rb_yield, self, &result);
-	return sanspleur_stop_sample(self);
+	return sanspleur_stop_sample(self, end_info);
 }
 
 VALUE sanspleur_skip_writting_to_debug(VALUE self, VALUE skip)

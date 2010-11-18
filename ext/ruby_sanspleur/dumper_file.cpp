@@ -23,7 +23,7 @@ DumperFile::DumperFile(const char *filename)
 
 DumperFile::~DumperFile()
 {
-	this->close_file();
+	this->close_file_with_info(NULL);
 	if (_filename) {
 		free((void *)_filename);
 	}
@@ -42,13 +42,19 @@ void DumperFile::open_file_with_sample(int usleep_value, const char *info)
 	}
 }
 
-void DumperFile::close_file()
+void DumperFile::close_file_with_info(const char *info)
 {
 	if (_file) {
+		write_string_in_file("\n--\n");
+		if (info) {
+			write_string_in_file(info);
+		}
 #ifdef USE_FOPEN
 		fclose(_file);
+		_file = 0;
 #else
 		close(_file);
+		_file = NULL;
 #endif
 	}
 }
