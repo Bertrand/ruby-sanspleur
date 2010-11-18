@@ -13,6 +13,7 @@
 #include "version.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 
 DumperFile::DumperFile(const char *filename)
 {
@@ -29,7 +30,7 @@ DumperFile::~DumperFile()
 	}
 }
 
-void DumperFile::open_file_with_sample(int usleep_value, const char *info)
+void DumperFile::open_file_with_sample(const char *url, int usleep_value, const char *extra_info)
 {
 #ifdef USE_FOPEN
 	_file = fopen(_filename, "w");
@@ -37,18 +38,15 @@ void DumperFile::open_file_with_sample(int usleep_value, const char *info)
 	_file = ::open(_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH | O_NONBLOCK);
 #endif
 	if (_file) {
-		this->write_header(info);
+		this->write_header(url, usleep_value, extra_info);
 		_usleep_value = usleep_value;
 	}
 }
 
-void DumperFile::close_file_with_info(const char *info)
+void DumperFile::close_file_with_info(const char *extra_info)
 {
 	if (_file) {
-		write_string_in_file("\n--\n");
-		if (info) {
-			write_string_in_file(info);
-		}
+		write_footer(extra_info);
 #ifdef USE_FOPEN
 		fclose(_file);
 		_file = 0;
@@ -59,21 +57,54 @@ void DumperFile::close_file_with_info(const char *info)
 	}
 }
 
-void DumperFile::write_header(const char *info)
+void DumperFile::write_header(const char *url, int usleep_value, const char *extra_info)
 {
 	if (_file) {
+		char buffer[128];
+		time_t date;
+		struct tm d;
+		
+		gettimeofday(&_start_date, NULL);
         write_string_in_file("version: ");
         write_string_in_file(RUBY_SANSPLEUR_VERSION);
         write_string_in_file("\n");
-        write_string_in_file(info);
+        write_string_in_file(url);
+        write_string_in_file("\n");
+		write_integer_in_file(usleep_value);
+        write_string_in_file("\n");
+
+		time(&date);
+		localtime_r(&date, &d);
+		strftime(buffer, sizeof(buffer), "%c", &d);
+        write_string_in_file(buffer);
+		if (extra_info) {
+	        write_string_in_file("\n");
+    	    write_string_in_file(extra_info);
+		}
         write_string_in_file("\n--\n");
+	}
+}
+
+void DumperFile::write_footer(const char *extra_info)
+{
+	if (_file) {
+		struct timeval stop_date;
+		
+		gettimeofday(&stop_date, NULL);
+		write_string_in_file("\n--\n");
+		write_double_in_file((stop_date.tv_sec + (stop_date.tv_usec / 1000000.0)) - (_start_date.tv_sec + (_start_date.tv_usec / 1000000.0)));
+        write_string_in_file("\n");
+		if (extra_info) {
+	        write_string_in_file(extra_info);
+    	    write_string_in_file("\n");
+		}
 	}
 }
 
 void DumperFile::write_stack_trace_sample_header(StackTraceSample* sample)
 {
 	if (_file) {
-		this->write_header(sample->get_info());
+		this->write_header(sample->get_url(), sample->get_interval(), sample->get_extra_beginning_info());
 	}
 }
 
@@ -163,15 +194,23 @@ int DumperFile::write_string_in_file(const char *string)
 
 int DumperFile::write_integer_in_file(int integer)
 {
-	char buffer[256];
+	char buffer[128];
 	
 	sprintf(buffer, "%d", integer);
 	return write_string_in_file(buffer);
 }
 
+int DumperFile::write_double_in_file(double number)
+{
+	char buffer[128];
+	
+	sprintf(buffer, "%f", number);
+	return write_string_in_file(buffer);
+}
+
 int DumperFile::write_pointer_in_file(const void *pointer)
 {
-	char buffer[256];
+	char buffer[128];
 	
 	sprintf(buffer, "%p", pointer);
 	return write_string_in_file(buffer);

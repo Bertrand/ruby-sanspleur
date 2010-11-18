@@ -34,16 +34,21 @@ class StackTraceSample {
 		struct stack_trace *_last_stack_trace;
 		int _thread_called_count;
 		int _stack_trace_count;
-		char *_info;
+		const char *_beginning_info;
+		const char *_url;
+		int _interval;
 	
 	public:
-		StackTraceSample();
+		StackTraceSample(int interval);
 		~StackTraceSample();
 		
 		void thread_called(void);
-		void set_info(const char *info);
-		const char* get_info(void);
-		struct stack_trace *get_first_stack_trace();
+		void set_extra_beginning_info(const char *info);
+		const char* get_extra_beginning_info(void);
+		int get_interval(void);
+		struct stack_trace *get_first_stack_trace(void);
+		void set_url(const char *url);
+		const char* get_url(void);
 		
 		void add_new_stack_trace(struct stack_trace *new_trace);
 };

@@ -139,14 +139,18 @@ VALUE sanspleur_set_current_thread_to_sample(VALUE self)
 	return Qnil;
 }
 
-VALUE sanspleur_start_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE info)
+VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE extra_info)
 {
 	struct FRAME *test = ruby_frame;
 	int count = 0;
-	const char *info_string = NULL;
+	const char *url_string = NULL;
+	const char *extra_info_string = NULL;
 	
-	if (info) {
-		info_string = StringValueCStr(info);
+	if (url && url != Qnil) {
+		url_string = StringValueCStr(url);
+	}
+	if (extra_info && extra_info != Qnil) {
+		extra_info_string = StringValueCStr(extra_info);
 	}
 	if (!thread_to_sample) {
 		thread_to_sample = rb_curr_thread;
@@ -161,7 +165,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE usleep_value, VALUE file_name, VA
 	}
 	usleep_value = NUM2INT(usleep_value);
 	dumper = new DumperFile(StringValueCStr(file_name));
-	dumper->open_file_with_sample(usleep_value, info_string);
+	dumper->open_file_with_sample(url_string, usleep_value, extra_info_string);
 	if (skip_writting) {
 		dumper->skip_writting(true);
 	}
@@ -170,7 +174,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE usleep_value, VALUE file_name, VA
 	return Qnil;
 }
 
-VALUE sanspleur_stop_sample(VALUE self, VALUE info)
+VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 {
 	struct FRAME *test = ruby_frame;
 	int count = 0;
@@ -179,12 +183,12 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE info)
 	sanspleur_stop_thread();
 	
 	if (dumper) {
-		const char *info_string = NULL;
+		const char *extra_info_string = NULL;
 		
-		if (info) {
-			info_string = StringValueCStr(info);
+		if (extra_info && extra_info != Qnil) {
+			extra_info_string = StringValueCStr(extra_info);
 		}
-		dumper->close_file_with_info(info_string);
+		dumper->close_file_with_info(extra_info_string);
 		delete dumper;
 		dumper = NULL;
 	}
@@ -194,7 +198,7 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE info)
 	return Qnil;
 }
 
-VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE begin_info, VALUE end_info)
+VALUE sanspleur_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE beginning_extra_info, VALUE end_extra_info)
 {
 	int result;
 
@@ -202,9 +206,9 @@ VALUE sanspleur_sample(VALUE self, VALUE usleep_value, VALUE file_name, VALUE be
 		rb_raise(rb_eArgError, "A block must be provided to the profile method.");
 	}
 	
-	sanspleur_start_sample(self, usleep_value, file_name, begin_info);
+	sanspleur_start_sample(self, url, usleep_value, file_name, beginning_extra_info);
 	rb_protect(rb_yield, self, &result);
-	return sanspleur_stop_sample(self, end_info);
+	return sanspleur_stop_sample(self, end_extra_info);
 }
 
 VALUE sanspleur_skip_writting_to_debug(VALUE self, VALUE skip)

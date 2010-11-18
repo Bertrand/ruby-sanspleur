@@ -55,13 +55,15 @@ static void print_stack_trace(struct stack_trace *trace)
 	}
 }
 
-StackTraceSample::StackTraceSample()
+StackTraceSample::StackTraceSample(int interval)
 {
 	_first_stack_trace = NULL;
 	_last_stack_trace = NULL;
 	_thread_called_count = 0;
 	_stack_trace_count = 0;
-	_info = NULL;
+	_beginning_info = NULL;
+	_interval = interval;
+	_url = NULL;
 }
 
 StackTraceSample::~StackTraceSample()
@@ -76,9 +78,13 @@ StackTraceSample::~StackTraceSample()
 		_first_stack_trace = tmp;
 	}
     _last_stack_trace = NULL;
-    if (_info) {
-    	free(_info);
-        _info = NULL;
+    if (_beginning_info) {
+    	free((void *)_beginning_info);
+        _beginning_info = NULL;
+    }
+    if (_url) {
+    	free((void *)_url);
+        _url = NULL;
     }
 }
 
@@ -87,17 +93,35 @@ struct stack_trace *StackTraceSample::get_first_stack_trace()
 	return _first_stack_trace;
 }
 
-void StackTraceSample::set_info(const char *info)
+void StackTraceSample::set_extra_beginning_info(const char *info)
 {
-	if (_info) {
-		free(_info);
+	if (_beginning_info) {
+		free((void *)_beginning_info);
 	}
-	_info = sanspleur_copy_string(info);
+	_beginning_info = sanspleur_copy_string(info);
 }
 
-const char *StackTraceSample::get_info(void)
+const char *StackTraceSample::get_extra_beginning_info(void)
 {
-	return _info;
+	return _beginning_info;
+}
+
+int StackTraceSample::get_interval(void)
+{
+	return _interval;
+}
+
+void StackTraceSample::set_url(const char *url)
+{
+	if (_url) {
+		free((void *)_url);
+	}
+	_url = sanspleur_copy_string(url);
+}
+
+const char* StackTraceSample::get_url(void)
+{
+	return _url;
 }
 
 void StackTraceSample::thread_called(void)
