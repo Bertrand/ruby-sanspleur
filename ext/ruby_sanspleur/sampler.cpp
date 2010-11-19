@@ -42,7 +42,8 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 	if (sample) {
 		sample->thread_called();
 	}
-	if (thread_to_sample == rb_curr_thread && (ticks_count = sanspleur_did_thread_tick()) != 0) {
+	ticks_count = sanspleur_did_thread_tick();
+	if (thread_to_sample == rb_curr_thread && ticks_count != 0) {
 		struct FRAME *frame = ruby_frame;
     	NODE *n;
 		struct stack_trace *new_trace;
@@ -85,6 +86,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		if (dumper) {
 			dumper->write_stack_trace(new_trace);
 		}
+		sanspleur_reset_thread_tick();
 	}
 }
 

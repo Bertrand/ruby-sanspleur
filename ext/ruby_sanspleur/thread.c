@@ -66,7 +66,11 @@ int sanspleur_did_thread_tick(void)
 	
 	if (sanspleur_thread_running) {
 		value = sanspleur_thread_tick - sanspleur_last_sample_tick;
-		sanspleur_last_sample_tick = sanspleur_thread_tick;
 	}
 	return value;
+}
+
+void sanspleur_reset_thread_tick(void)
+{
+	sanspleur_last_sample_tick = sanspleur_thread_tick;
 }
