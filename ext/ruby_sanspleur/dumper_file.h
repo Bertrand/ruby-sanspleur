@@ -27,7 +27,7 @@ class DumperFile
 		bool _skip_writting;
 	
 		void write_header(const char *url, int usleep_value, const char *extra_info);
-		void write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace);
+		void write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace, const char *suffix);
 //		void write_stack_trace_sample_header(StackTraceSample* sample);
 		void write_stack_trace_sample(StackTraceSample* sample);
 		int write_string_in_file(const char *string, ...);

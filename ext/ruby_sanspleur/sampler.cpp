@@ -55,6 +55,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		
 		for (; frame && (n = frame->node); frame = frame->prev) {
 			const char *function_name = NULL;
+			const char *file_name = n->nd_file;
 			struct stack_line *new_line;
 			ID function_id = 0;
 			
@@ -66,6 +67,12 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 				function_id = frame->prev->last_func;
 				function_name = rb_id2name(frame->prev->last_func);
 			}
+			if (function_name == NULL) {
+				function_name = "";
+			}
+			if (file_name == NULL) {
+				file_name = "";
+			}
 			
 			new_line = (struct stack_line *)calloc(1, sizeof(*new_line));
 			new_line->next_stack_line = new_trace->stack_line;
@@ -73,10 +80,10 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 			new_line->line_number = nd_line(n);
 			new_line->function_id = function_id;
 #if COPY_RUBY_STRING
-			new_line->file_name = sanspleur_copy_string(n->nd_file);
+			new_line->file_name = sanspleur_copy_string(file_name);
 			new_line->function_name = sanspleur_copy_string(function_name);
 #else
-			new_line->file_name = n->nd_file;
+			new_line->file_name = file_name;
 			new_line->function_name = function_name;
 #endif
 		}

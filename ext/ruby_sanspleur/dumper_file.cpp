@@ -66,23 +66,15 @@ void DumperFile::write_header(const char *url, int usleep_value, const char *ext
 		struct tm d;
 		
 		gettimeofday(&_start_date, NULL);
-        write_string_in_file("version: ");
-        write_string_in_file(RUBY_SANSPLEUR_VERSION);
-        write_string_in_file("\n");
-        write_string_in_file(url);
-        write_string_in_file("\n");
-		write_integer_in_file(usleep_value);
-        write_string_in_file("\n");
-
 		time(&date);
 		localtime_r(&date, &d);
 		strftime(buffer, sizeof(buffer), "%c", &d);
-        write_string_in_file(buffer);
+		
 		if (extra_info) {
-	        write_string_in_file("\n");
-    	    write_string_in_file(extra_info);
+	        write_string_in_file("%s\n%s\n%d\n%s\n%s\n--\n", RUBY_SANSPLEUR_VERSION, url, usleep_value, buffer, extra_info);
+		} else {
+	        write_string_in_file("%s\n%s\n%d\n%s\n--\n", RUBY_SANSPLEUR_VERSION, url, usleep_value, buffer);
 		}
-        write_string_in_file("\n--\n");
 	}
 }
 
@@ -92,12 +84,10 @@ void DumperFile::write_footer(const char *extra_info)
 		struct timeval stop_date;
 		
 		gettimeofday(&stop_date, NULL);
-		write_string_in_file("\n--\n");
-		write_double_in_file((stop_date.tv_sec + (stop_date.tv_usec / 1000000.0)) - (_start_date.tv_sec + (_start_date.tv_usec / 1000000.0)));
-        write_string_in_file("\n");
 		if (extra_info) {
-	        write_string_in_file(extra_info);
-    	    write_string_in_file("\n");
+			write_string_in_file("\n--\n%.2f\n%s\n", (stop_date.tv_sec + (stop_date.tv_usec / 1000000.0)) - (_start_date.tv_sec + (_start_date.tv_usec / 1000000.0)), extra_info);
+		} else {
+			write_string_in_file("\n--\n%.2f\n", (stop_date.tv_sec + (stop_date.tv_usec / 1000000.0)) - (_start_date.tv_sec + (_start_date.tv_usec / 1000000.0)), extra_info);
 		}
 	}
 }
@@ -132,42 +122,38 @@ void DumperFile::write_stack_trace(struct stack_trace *trace)
 
 		line = trace->stack_line;
 		while (line) {
-			write_stack_line_in_file(line, trace);
+			write_stack_line_in_file(line, trace, line->next_stack_line?"":"\n");
 			line = line->next_stack_line;
 			depth++;
 		}
-		write_string_in_file("\n");
 	}
 }
 
-void DumperFile::write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace)
+void DumperFile::write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace, const char *suffix)
 {
 	if (_skip_writting) {
 		return;
 	}
 	// thread id, time, file, stack depth, type, ns, function, symbol
-	write_string_in_file("1"); // 0: thread id
-	write_string_in_file("\t");
-	write_integer_in_file(trace->thread_ticks * _usleep_value);  // 1: time
-	write_string_in_file("\t");
-	if (line->file_name) {
-		write_string_in_file(line->file_name);  // 2: file
-	}
-	write_string_in_file("\t");
-	write_integer_in_file(line->line_number);  // 3: line number
-	write_string_in_file("\t");
-	write_pointer_in_file((void *)trace->ruby_event);  // 4: type
-	write_string_in_file("\t");
-	if (line->function_id) {
-		write_pointer_in_file((void *)line->function_id);  // 5: function id
-	}
-	write_string_in_file("\t");
-	if (line->function_name) {
-		write_string_in_file(line->function_name);  // 6: function name
-	}
-	write_string_in_file("\t");
-	write_string_in_file(trace->call_method); // 7: call method
-	write_string_in_file("\n");
+	write_string_in_file(
+	"1\t" // 0: thread id
+	"%d\t" // 1: time
+	"%s\t" // 2: file
+	"%d\t" // 3: line number
+	"%p\t" // 4: type
+	"%p\t" // 5: function id
+	"%s\t" // 6: function name
+	"%s\n" // 7: call method
+	"%s", // suffix
+	trace->thread_ticks * _usleep_value, // 1: time
+	line->file_name, // 2: file
+	line->line_number, // 3: line number
+	(void *)trace->ruby_event, // 4: type
+	(void *)line->function_id, // 5: function id
+	line->function_name, // 6: function name
+	trace->call_method, // 7: call method
+	suffix
+	);
 }
 
 void DumperFile::skip_writting(bool skip)
@@ -197,24 +183,15 @@ int DumperFile::write_string_in_file(const char *format, ...)
 
 int DumperFile::write_integer_in_file(int integer)
 {
-	char buffer[128];
-	
-	sprintf(buffer, "%d", integer);
-	return write_string_in_file(buffer);
+	return write_string_in_file("%d", integer);
 }
 
 int DumperFile::write_double_in_file(double number)
 {
-	char buffer[128];
-	
-	sprintf(buffer, "%f", number);
-	return write_string_in_file(buffer);
+	return write_string_in_file("%f", number);
 }
 
 int DumperFile::write_pointer_in_file(const void *pointer)
 {
-	char buffer[128];
-	
-	sprintf(buffer, "%p", pointer);
-	return write_string_in_file(buffer);
+	return write_string_in_file("%p", pointer);
 }
