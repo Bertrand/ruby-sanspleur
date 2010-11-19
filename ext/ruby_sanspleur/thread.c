@@ -24,8 +24,8 @@ static void *sanspleur_thread_process(void *arg)
 	usleep_value = *(unsigned long long *)arg;
 	free(arg);
 	while (sanspleur_thread_running) {
-		sanspleur_thread_tick++;
 		usleep(usleep_value);
+		sanspleur_thread_tick++;
 	}
 	pthread_exit(0);
 }
