@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdarg.h>
 
 DumperFile::DumperFile(const char *filename)
 {
@@ -101,27 +102,27 @@ void DumperFile::write_footer(const char *extra_info)
 	}
 }
 
-void DumperFile::write_stack_trace_sample_header(StackTraceSample* sample)
-{
-	if (_file) {
-		this->write_header(sample->get_url(), sample->get_interval(), sample->get_extra_beginning_info());
-	}
-}
-
-//void DumperFile::write_stack_trace_sample(StackTraceSample* sample)
+//void DumperFile::write_stack_trace_sample_header(StackTraceSample* sample)
 //{
 //	if (_file) {
-//		struct stack_trace *trace;
-//		
-//		_usleep_value = sample->get_usleep_value();
-//		this->write_stack_trace_sample_header(sample);
-//        trace = sample->get_first_stack_trace();
-//		while (trace) {
-//			this->write_stack_trace(trace);
-//			trace = trace->next_stack_trace;
-//		}
+//		this->write_header(sample->get_url(), sample->get_interval(), sample->get_extra_beginning_info());
 //	}
 //}
+
+void DumperFile::write_stack_trace_sample(StackTraceSample* sample)
+{
+	if (_file) {
+		struct stack_trace *trace;
+		
+//		_usleep_value = sample->get_usleep_value();
+//		this->write_stack_trace_sample_header(sample);
+        trace = sample->get_first_stack_trace();
+		while (trace) {
+			this->write_stack_trace(trace);
+			trace = trace->next_stack_trace;
+		}
+	}
+}
 
 void DumperFile::write_stack_trace(struct stack_trace *trace)
 {
@@ -175,21 +176,23 @@ void DumperFile::skip_writting(bool skip)
 }
 
 
-int DumperFile::write_string_in_file(const char *string)
+int DumperFile::write_string_in_file(const char *format, ...)
 {
-	int size;
 	int result;
+	va_list list;
 	
-	if (string == NULL) {
-		string = "(null)";
+	va_start(list, format);
+	if (format == NULL) {
+		format = "(null)";
 	}
-	size = strlen(string);
 #ifdef USE_FOPEN
-	result = fprintf(_file, "%s", string);
+	result = vfprintf(_file, format, list) > 0;
 #else
-	result = write(_file, string, size);
+#error not implemented
+	result = write(_file, format, size) == size;
 #endif
-	return result == size;
+	va_end(list);
+	return result;
 }
 
 int DumperFile::write_integer_in_file(int integer)
