@@ -14,7 +14,7 @@
 #include "dumper_file.h"
 #include "ruby_sanspleur.h"
 #include "stack_trace_sample.h"
-#include "thread.h"
+#include "tick_thread.h"
 
 #define STRING_BUFFER_SIZE 1024
 
@@ -26,9 +26,9 @@ extern "C" {
 
 static rb_thread_t thread_to_sample = NULL;
 
+static TickThread *tick_thread = NULL;
 static StackTraceSample *sample = NULL;
 static DumperFile *dumper = NULL;
-static int usleep_value = 0;
 static int skip_writting = 0;
 
 #ifdef RUBY_VM
@@ -42,7 +42,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 	if (sample) {
 		sample->thread_called();
 	}
-	ticks_count = sanspleur_did_thread_tick();
+	ticks_count = tick_thread->did_thread_tick();
 	if (thread_to_sample == rb_curr_thread && ticks_count != 0) {
 		struct FRAME *frame = ruby_frame;
     	NODE *n;
@@ -86,7 +86,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		if (dumper) {
 			dumper->write_stack_trace(new_trace);
 		}
-		sanspleur_reset_thread_tick();
+		tick_thread->update_current_anchor();
 	}
 }
 
@@ -147,6 +147,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 	int count = 0;
 	const char *url_string = NULL;
 	const char *extra_info_string = NULL;
+	int usleep_int;
 	
 	if (url && url != Qnil) {
 		url_string = StringValueCStr(url);
@@ -165,13 +166,18 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 		delete dumper;
 		dumper = NULL;
 	}
-	usleep_value = NUM2INT(usleep_value);
+	if (tick_thread) {
+		tick_thread->stop();
+		tick_thread = NULL;
+	}
+	usleep_int = NUM2INT(usleep_value);
 	dumper = new DumperFile(StringValueCStr(file_name));
-	dumper->open_file_with_sample(url_string, usleep_value, extra_info_string);
+	dumper->open_file_with_sample(url_string, usleep_int, extra_info_string);
 	if (skip_writting) {
 		dumper->skip_writting(true);
 	}
-	sanspleur_start_thread(usleep_value);
+	tick_thread	= new TickThread(usleep_int);
+	tick_thread->start();
 	sanspleur_install_sampler_hook();
 	return Qnil;
 }
@@ -182,7 +188,8 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 	int count = 0;
 	
 	sanspleur_remove_sampler_hook();
-	sanspleur_stop_thread();
+	tick_thread->stop();
+	tick_thread = NULL;
 	
 	if (dumper) {
 		const char *extra_info_string = NULL;
