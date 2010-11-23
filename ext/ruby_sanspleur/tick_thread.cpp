@@ -11,27 +11,30 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
-
-static volatile long long sanspleur_thread_tick = 0;
-static long long sanspleur_last_sample_tick = 0;
-static pthread_t sanspleur_thread;
-static int sanspleur_thread_running = 0;
+#include <sys/time.h>
 
 static void *thread_function(void *instance)
 {
 	return ((TickThread *)instance)->_thread_action();
 }
 
-long long current_anchor;
-long long thread_tick;
-int usleep_value;
-int should_stop;
+double TickThread::get_current_time()
+{
+	struct timeval current_date;
+	double result;
+	
+	gettimeofday(&current_date, NULL);
+	result = current_date.tv_sec + (current_date.tv_usec / 1000000.0);
+	return result;
+}
+
 TickThread::TickThread(int usleep_value)
 {
-	_current_anchor = 0;
-	_thread_tick = 0;
+	_thread_time = TickThread::get_current_time();
+	_anchor_time = _thread_time;
 	_usleep_value = usleep_value;
 	_thread_running = 0;
+	_tick_count = 0;
 }
 
 TickThread::~TickThread()
@@ -39,32 +42,50 @@ TickThread::~TickThread()
 }
 
 
-int TickThread::did_thread_tick(void)
+double TickThread::anchor_difference()
 {
-	return _thread_tick - _current_anchor;
+	return _thread_time - _anchor_time;
 }
 
-void TickThread::update_current_anchor(void)
+void TickThread::update_anchor()
 {
-	_current_anchor = _thread_tick;
+	_anchor_time = _thread_time;
+	_tick_count = 0;
 }
 
-void TickThread::start(void)
+double TickThread::anchor_value()
+{
+	return _anchor_time;
+}
+
+int TickThread::anchor_tick_value()
+{
+	return _tick_count;
+}
+
+void TickThread::start()
 {
 	_thread_running = 1;
 	pthread_create(&_thread, NULL, thread_function, this);
 }
 
-void TickThread::stop(void)
+void TickThread::stop()
 {
 	_thread_running = 0;
 }
 
-void *TickThread::_thread_action(void)
+void *TickThread::_thread_action()
 {
+	double last_time;
+	
+	last_time = get_current_time();
 	while (_thread_running) {
+		double current_time;
+		
 		usleep(_usleep_value);
-		_thread_tick++;
+		_thread_time = TickThread::get_current_time();
+		last_time = current_time;
+		_tick_count++;
 	}
 	free(this);
 	pthread_exit(0);

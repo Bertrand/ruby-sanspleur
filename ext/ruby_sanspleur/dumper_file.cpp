@@ -137,21 +137,23 @@ void DumperFile::write_stack_line_in_file(struct stack_line *line, struct stack_
 	// thread id, time, file, stack depth, type, ns, function, symbol
 	write_string_in_file(
 	"1\t" // 0: thread id
-	"%d\t" // 1: time
+	"%d\t" // 1: tick
 	"%s\t" // 2: file
 	"%d\t" // 3: line number
 	"%p\t" // 4: type
 	"%p\t" // 5: function id
 	"%s\t" // 6: function name
-	"%s\n" // 7: call method
-	"%s", // suffix
-	trace->thread_ticks * _usleep_value, // 1: time
+	"%s\t" // 7: call method
+	"%f\t" // 8: sample duration
+	"\n%s", // suffix
+	trace->sample_tick_count, // 1: time
 	line->file_name, // 2: file
 	line->line_number, // 3: line number
 	(void *)trace->ruby_event, // 4: type
 	(void *)line->function_id, // 5: function id
 	line->function_name, // 6: function name
 	trace->call_method, // 7: call method
+	trace->sample_duration, // 8: sample duration
 	suffix
 	);
 }

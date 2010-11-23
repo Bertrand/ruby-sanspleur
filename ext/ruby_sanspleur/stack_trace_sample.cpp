@@ -101,12 +101,12 @@ void StackTraceSample::set_extra_beginning_info(const char *info)
 	_beginning_info = sanspleur_copy_string(info);
 }
 
-const char *StackTraceSample::get_extra_beginning_info(void)
+const char *StackTraceSample::get_extra_beginning_info()
 {
 	return _beginning_info;
 }
 
-int StackTraceSample::get_interval(void)
+int StackTraceSample::get_interval()
 {
 	return _interval;
 }
@@ -119,12 +119,12 @@ void StackTraceSample::set_url(const char *url)
 	_url = sanspleur_copy_string(url);
 }
 
-const char* StackTraceSample::get_url(void)
+const char* StackTraceSample::get_url()
 {
 	return _url;
 }
 
-void StackTraceSample::thread_called(void)
+void StackTraceSample::thread_called()
 {
 	_thread_called_count++;
 }

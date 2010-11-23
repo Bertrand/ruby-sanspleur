@@ -22,7 +22,8 @@ struct stack_trace;
 struct stack_trace {
 	struct stack_line *stack_line;
 	struct stack_trace *next_stack_trace;
-    int thread_ticks;
+    double sample_duration;
+	int sample_tick_count;
 	
 	int ruby_event;
 	const char *call_method;
@@ -42,13 +43,13 @@ class StackTraceSample {
 		StackTraceSample(int interval);
 		~StackTraceSample();
 		
-		void thread_called(void);
+		void thread_called();
 		void set_extra_beginning_info(const char *info);
-		const char* get_extra_beginning_info(void);
-		int get_interval(void);
-		struct stack_trace *get_first_stack_trace(void);
+		const char* get_extra_beginning_info();
+		int get_interval();
+		struct stack_trace *get_first_stack_trace();
 		void set_url(const char *url);
-		const char* get_url(void);
+		const char* get_url();
 		
 		void add_new_stack_trace(struct stack_trace *new_trace);
 };

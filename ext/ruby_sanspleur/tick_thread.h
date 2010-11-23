@@ -11,23 +11,27 @@
 
 class TickThread {
 	protected:
-		long long _current_anchor;
-		long long _thread_tick;
+		double _anchor_time;
+		double _thread_time;
 		int _usleep_value;
 		int _thread_running;
 		pthread_t _thread;
-		int user_count;
+		int _tick_count;
 
 		~TickThread();
 		
 	public:
+		static double get_current_time();
+		
 		TickThread(int usleep_value);
 		
-		int did_thread_tick(void);
-		void update_current_anchor(void);
+		double anchor_difference();
+		void update_anchor();
+		double anchor_value();
+		int anchor_tick_value();
 		
-		void start(void);
-		void stop(void);
+		void start();
+		void stop();
 
-		void *_thread_action(void);
+		void *_thread_action();
 };
