@@ -15,7 +15,11 @@
 
 static void *thread_function(void *instance)
 {
-	return ((TickThread *)instance)->_thread_action();
+	void *result;
+	
+	result = ((TickThread *)instance)->_thread_action();
+	pthread_exit(result);
+	return result;
 }
 
 double TickThread::get_current_time()
@@ -88,6 +92,5 @@ void *TickThread::_thread_action()
 		_tick_count++;
 	}
 	free(this);
-	pthread_exit(0);
 	return NULL;
 }

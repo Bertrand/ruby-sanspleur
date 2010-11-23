@@ -8,6 +8,7 @@
  */
 
 #include "stack_trace_sample.h"
+#include <time.h>
 
 static void empty_stack_line(struct stack_line *line)
 {
@@ -55,15 +56,30 @@ static void print_stack_trace(struct stack_trace *trace)
 	}
 }
 
-StackTraceSample::StackTraceSample(int interval)
+const char *StackTraceSample::current_date_string()
+{
+	time_t date;
+	struct tm d;
+	char *buffer;
+	
+	buffer = (char *)malloc(128);
+	time(&date);
+	localtime_r(&date, &d);
+	strftime(buffer, 127, "%c", &d);
+	return buffer;
+}
+
+StackTraceSample::StackTraceSample(int interval, const char *url)
 {
 	_first_stack_trace = NULL;
 	_last_stack_trace = NULL;
 	_thread_called_count = 0;
 	_stack_trace_count = 0;
 	_beginning_info = NULL;
+	_ending_info = NULL;
 	_interval = interval;
-	_url = NULL;
+	_url = sanspleur_copy_string(url);
+	_start_date_string = StackTraceSample::current_date_string();
 }
 
 StackTraceSample::~StackTraceSample()
@@ -82,10 +98,18 @@ StackTraceSample::~StackTraceSample()
     	free((void *)_beginning_info);
         _beginning_info = NULL;
     }
+	if (_ending_info) {
+		free((void *)_ending_info);
+		_ending_info = NULL;
+	}
     if (_url) {
     	free((void *)_url);
         _url = NULL;
     }
+	if (_start_date_string) {
+		free((void *)_start_date_string);
+		_start_date_string = NULL;
+	}
 }
 
 struct stack_trace *StackTraceSample::get_first_stack_trace()
@@ -106,17 +130,27 @@ const char *StackTraceSample::get_extra_beginning_info()
 	return _beginning_info;
 }
 
+void StackTraceSample::set_extra_ending_info(const char *info)
+{
+	if (_ending_info) {
+		free((void *)_ending_info);
+	}
+	_ending_info = sanspleur_copy_string(info);
+}
+
+const char *StackTraceSample::get_extra_ending_info()
+{
+	return _ending_info;
+}
+
+const char *StackTraceSample::get_start_date_string()
+{
+	return _start_date_string;
+}
+
 int StackTraceSample::get_interval()
 {
 	return _interval;
-}
-
-void StackTraceSample::set_url(const char *url)
-{
-	if (_url) {
-		free((void *)_url);
-	}
-	_url = sanspleur_copy_string(url);
 }
 
 const char* StackTraceSample::get_url()

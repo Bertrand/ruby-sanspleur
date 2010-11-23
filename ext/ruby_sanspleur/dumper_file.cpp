@@ -16,6 +16,27 @@
 #include <time.h>
 #include <stdarg.h>
 
+const char *DumperFile::default_tmp_filename()
+{
+	time_t date;
+	struct tm d;
+	char *buffer;
+	
+	buffer = (char *)malloc(128);
+	time(&date);
+	localtime_r(&date, &d);
+	strftime(buffer, sizeof(buffer), "/tmp/%c", &d);
+	return buffer;
+}
+
+double DumperFile::get_current_time()
+{
+	struct timeval stop_date;
+	
+	gettimeofday(&stop_date, NULL);
+	return stop_date.tv_sec + (stop_date.tv_usec / 1000000.0);
+}
+
 DumperFile::DumperFile(const char *filename)
 {
 	_file = NULL;
@@ -25,13 +46,13 @@ DumperFile::DumperFile(const char *filename)
 
 DumperFile::~DumperFile()
 {
-	this->close_file_with_info(NULL);
+	this->close_file_with_info(-1, NULL);
 	if (_filename) {
 		free((void *)_filename);
 	}
 }
 
-void DumperFile::open_file_with_sample(const char *url, int usleep_value, const char *extra_info)
+void DumperFile::open_file_with_sample(const char *url, int usleep_value, const char *start_date, const char *extra_info)
 {
 #ifdef USE_FOPEN
 	_file = fopen(_filename, "w");
@@ -39,15 +60,16 @@ void DumperFile::open_file_with_sample(const char *url, int usleep_value, const 
 	_file = ::open(_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH | O_NONBLOCK);
 #endif
 	if (_file) {
-		this->write_header(url, usleep_value, extra_info);
+		_start_time = DumperFile::get_current_time();
+		this->write_header(url, usleep_value, start_date, extra_info);
 		_usleep_value = usleep_value;
 	}
 }
 
-void DumperFile::close_file_with_info(const char *extra_info)
+void DumperFile::close_file_with_info(double duration, const char *extra_info)
 {
 	if (_file) {
-		write_footer(extra_info);
+		write_footer(duration, extra_info);
 #ifdef USE_FOPEN
 		fclose(_file);
 		_file = 0;
@@ -58,54 +80,36 @@ void DumperFile::close_file_with_info(const char *extra_info)
 	}
 }
 
-void DumperFile::write_header(const char *url, int usleep_value, const char *extra_info)
+void DumperFile::write_header(const char *url, int usleep_value, const char *start_date, const char *extra_info)
 {
 	if (_file) {
-		char buffer[128];
-		time_t date;
-		struct tm d;
-		
-		gettimeofday(&_start_date, NULL);
-		time(&date);
-		localtime_r(&date, &d);
-		strftime(buffer, sizeof(buffer), "%c", &d);
-		
 		if (extra_info) {
-	        write_string_in_file("%s\n%s\n%d\n%s\n%s\n--\n", RUBY_SANSPLEUR_VERSION, url, usleep_value, buffer, extra_info);
+	        write_string_in_file("%s\n%s\n%d\n%s\n%s\n--\n", RUBY_SANSPLEUR_VERSION, url, usleep_value, start_date, extra_info);
 		} else {
-	        write_string_in_file("%s\n%s\n%d\n%s\n--\n", RUBY_SANSPLEUR_VERSION, url, usleep_value, buffer);
+	        write_string_in_file("%s\n%s\n%d\n%s\n--\n", RUBY_SANSPLEUR_VERSION, url, usleep_value, start_date);
 		}
 	}
 }
 
-void DumperFile::write_footer(const char *extra_info)
+void DumperFile::write_footer(double duration, const char *extra_info)
 {
 	if (_file) {
 		struct timeval stop_date;
 		
 		gettimeofday(&stop_date, NULL);
 		if (extra_info) {
-			write_string_in_file("\n--\n%.2f\n%s\n", (stop_date.tv_sec + (stop_date.tv_usec / 1000000.0)) - (_start_date.tv_sec + (_start_date.tv_usec / 1000000.0)), extra_info);
+			write_string_in_file("\n--\n%.2f\n%.2f\n%s\n", duration, DumperFile::get_current_time() - _start_time, extra_info);
 		} else {
-			write_string_in_file("\n--\n%.2f\n", (stop_date.tv_sec + (stop_date.tv_usec / 1000000.0)) - (_start_date.tv_sec + (_start_date.tv_usec / 1000000.0)), extra_info);
+			write_string_in_file("\n--\n%.2f\n%.2f\n", duration, DumperFile::get_current_time() - _start_time, extra_info);
 		}
 	}
 }
-
-//void DumperFile::write_stack_trace_sample_header(StackTraceSample* sample)
-//{
-//	if (_file) {
-//		this->write_header(sample->get_url(), sample->get_interval(), sample->get_extra_beginning_info());
-//	}
-//}
 
 void DumperFile::write_stack_trace_sample(StackTraceSample* sample)
 {
 	if (_file) {
 		struct stack_trace *trace;
 		
-//		_usleep_value = sample->get_usleep_value();
-//		this->write_stack_trace_sample_header(sample);
         trace = sample->get_first_stack_trace();
 		while (trace) {
 			this->write_stack_trace(trace);

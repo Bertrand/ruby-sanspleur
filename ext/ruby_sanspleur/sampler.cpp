@@ -30,6 +30,7 @@ static TickThread *tick_thread = NULL;
 static StackTraceSample *sample = NULL;
 static DumperFile *dumper = NULL;
 static int skip_writting = 0;
+static double start_sample_date = 0;
 
 #ifdef RUBY_VM
 static void sanspleur_sampler_event_hook(rb_event_flag_t event, VALUE data, VALUE self, ID mid, VALUE klass)
@@ -179,11 +180,20 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 		tick_thread = NULL;
 	}
 	usleep_int = NUM2INT(usleep_value);
-	dumper = new DumperFile(StringValueCStr(file_name));
-	dumper->open_file_with_sample(url_string, usleep_int, extra_info_string);
-	if (skip_writting) {
-		dumper->skip_writting(true);
+	if (file_name != Qnil) {
+		const char *start_date;
+		
+		start_date = StackTraceSample::current_date_string();
+		dumper = new DumperFile(StringValueCStr(file_name));
+		dumper->open_file_with_sample(url_string, usleep_int, start_date, extra_info_string);
+		free((void *)start_date);
+		if (skip_writting) {
+			dumper->skip_writting(true);
+		}
+	} else {
+		sample = new StackTraceSample(usleep_int, url_string);
 	}
+	start_sample_date = DumperFile::get_current_time();
 	tick_thread	= new TickThread(usleep_int);
 	tick_thread->start();
 	sanspleur_install_sampler_hook();
@@ -192,6 +202,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 
 VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 {
+	const char *extra_info_string = NULL;
 	struct FRAME *test = ruby_frame;
 	int count = 0;
 	
@@ -199,13 +210,14 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 	tick_thread->stop();
 	tick_thread = NULL;
 	
+	if (extra_info && extra_info != Qnil) {
+		extra_info_string = StringValueCStr(extra_info);
+	}
+	if (sample) {
+		sample->set_extra_ending_info(extra_info_string);
+	}
 	if (dumper) {
-		const char *extra_info_string = NULL;
-		
-		if (extra_info && extra_info != Qnil) {
-			extra_info_string = StringValueCStr(extra_info);
-		}
-		dumper->close_file_with_info(extra_info_string);
+		dumper->close_file_with_info(DumperFile::get_current_time() - start_sample_date, extra_info_string);
 		delete dumper;
 		dumper = NULL;
 	}
@@ -226,6 +238,61 @@ VALUE sanspleur_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_nam
 	sanspleur_start_sample(self, url, usleep_value, file_name, beginning_extra_info);
 	rb_protect(rb_yield, self, &result);
 	return sanspleur_stop_sample(self, end_extra_info);
+}
+
+static void write_sample_to_disk(StackTraceSample *sample, char *filename, double duration)
+{
+	DumperFile *dumper;
+	
+	dumper = new DumperFile(filename);
+	dumper->open_file_with_sample(sample->get_url(), sample->get_interval(), sample->get_start_date_string(), sample->get_extra_beginning_info());
+	dumper->write_stack_trace_sample(sample);
+	dumper->close_file_with_info(duration, sample->get_extra_ending_info());
+	delete dumper;
+}
+
+struct data {
+	StackTraceSample *sample;
+	char *filename;
+	double duration;
+};
+
+static void *write_sample_to_disk_in_thread(void *values)
+{
+	struct data *values_data;
+	
+	values_data = (struct data *)values;
+	write_sample_to_disk(values_data->sample, values_data->filename, values_data->duration);
+	delete values_data->sample;
+	free(values_data->filename);
+	free(values_data);
+	pthread_exit(NULL);
+	return NULL;
+}
+
+VALUE sanspleur_save_current_sample(VALUE self, VALUE filename, VALUE in_thread)
+{
+	if (sample) {
+		int in_thread_int;
+		
+		in_thread_int = NUM2INT(in_thread);
+		if (in_thread_int) {
+			struct data *values;
+			pthread_t thread;
+			
+			values = (struct data *)malloc(sizeof(values));
+			values->sample = sample;
+			values->filename = sanspleur_copy_string(StringValueCStr(filename));
+			values->duration = DumperFile::get_current_time() - start_sample_date;
+			pthread_create(&thread, NULL, write_sample_to_disk_in_thread, (void *)values);
+			sample = NULL;
+		} else {
+			write_sample_to_disk(sample, StringValueCStr(filename), DumperFile::get_current_time() - start_sample_date);
+			delete sample;
+			sample = NULL;
+		}
+	}
+	return Qnil;
 }
 
 VALUE sanspleur_skip_writting_to_debug(VALUE self, VALUE skip)

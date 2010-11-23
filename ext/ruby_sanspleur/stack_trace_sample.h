@@ -36,19 +36,25 @@ class StackTraceSample {
 		int _thread_called_count;
 		int _stack_trace_count;
 		const char *_beginning_info;
+		const char *_ending_info;
 		const char *_url;
+		const char *_start_date_string;
 		int _interval;
 	
 	public:
-		StackTraceSample(int interval);
+		static const char *current_date_string();
+		
+		StackTraceSample(int interval, const char *url);
 		~StackTraceSample();
 		
 		void thread_called();
 		void set_extra_beginning_info(const char *info);
 		const char* get_extra_beginning_info();
+		void set_extra_ending_info(const char *info);
+		const char *get_extra_ending_info();
+		const char *get_start_date_string();
 		int get_interval();
 		struct stack_trace *get_first_stack_trace();
-		void set_url(const char *url);
 		const char* get_url();
 		
 		void add_new_stack_trace(struct stack_trace *new_trace);
