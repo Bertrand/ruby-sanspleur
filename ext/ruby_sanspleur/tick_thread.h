@@ -21,8 +21,6 @@ class TickThread {
 		~TickThread();
 		
 	public:
-		static double get_current_time();
-		
 		TickThread(int usleep_value);
 		
 		double anchor_difference();

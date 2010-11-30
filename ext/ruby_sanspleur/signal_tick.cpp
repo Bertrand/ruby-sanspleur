@@ -30,7 +30,7 @@ static void timer_handler(int signal)
 
 SignalTick::SignalTick(int usleep_value)
 {
-	_thread_time = ::sanspleur_get_current_time();
+	_thread_time = sanspleur_get_current_time();
 	_anchor_time = _thread_time;
 	_usleep_value = usleep_value;
 	_thread_running = 0;
@@ -101,21 +101,4 @@ void SignalTick::stop()
 	memset (&sa, 0, sizeof (sa));
 	sa.sa_handler = NULL;
 	sigaction (SIGALRM, &sa, NULL);
-}
-
-void *SignalTick::_thread_action()
-{
-	double last_time;
-	
-	last_time = get_current_time();
-	while (_thread_running) {
-		double current_time;
-		
-		usleep(_usleep_value);
-		_thread_time = ::sanspleur_get_current_time();
-		last_time = current_time;
-		_tick_count++;
-	}
-	free(this);
-	return NULL;
 }

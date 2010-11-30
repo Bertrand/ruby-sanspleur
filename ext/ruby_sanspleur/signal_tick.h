@@ -18,8 +18,6 @@ class SignalTick {
 		~SignalTick();
 		
 	public:
-		static double get_current_time();
-		
 		SignalTick(int usleep_value);
 		
 		double anchor_difference();
@@ -29,6 +27,4 @@ class SignalTick {
 		
 		void start();
 		void stop();
-
-		void *_thread_action();
 };

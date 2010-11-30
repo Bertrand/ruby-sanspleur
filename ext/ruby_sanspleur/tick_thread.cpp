@@ -8,6 +8,7 @@
  */
 
 #include "tick_thread.h"
+#include "sampler.h"
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -22,19 +23,9 @@ static void *thread_function(void *instance)
 	return result;
 }
 
-double TickThread::get_current_time()
-{
-	struct timeval current_date;
-	double result;
-	
-	gettimeofday(&current_date, NULL);
-	result = current_date.tv_sec + (current_date.tv_usec / 1000000.0);
-	return result;
-}
-
 TickThread::TickThread(int usleep_value)
 {
-	_thread_time = TickThread::get_current_time();
+	_thread_time = sanspleur_get_current_time();
 	_anchor_time = _thread_time;
 	_usleep_value = usleep_value;
 	_thread_running = 0;
@@ -44,7 +35,6 @@ TickThread::TickThread(int usleep_value)
 TickThread::~TickThread()
 {
 }
-
 
 double TickThread::anchor_difference()
 {
@@ -82,12 +72,12 @@ void *TickThread::_thread_action()
 {
 	double last_time;
 	
-	last_time = get_current_time();
+	last_time = sanspleur_get_current_time();
 	while (_thread_running) {
 		double current_time;
 		
 		usleep(_usleep_value);
-		_thread_time = TickThread::get_current_time();
+		_thread_time = sanspleur_get_current_time();
 		last_time = current_time;
 		_tick_count++;
 	}
