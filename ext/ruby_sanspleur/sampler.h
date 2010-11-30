@@ -28,6 +28,8 @@ extern "C" {
 	VALUE sanspleur_save_current_sample(VALUE self, VALUE filename, VALUE in_thread);
 	
 	char *sanspleur_copy_string(const char *string);
+	double sanspleur_get_current_time();
+	
 #ifdef __cplusplus 
 }
 #endif

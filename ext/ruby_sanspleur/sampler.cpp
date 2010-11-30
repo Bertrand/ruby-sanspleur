@@ -144,6 +144,16 @@ char *sanspleur_copy_string(const char *string)
 	return result;
 }
 
+double sanspleur_get_current_time()
+{
+	struct timeval current_date;
+	double result;
+	
+	gettimeofday(&current_date, NULL);
+	result = current_date.tv_sec + (current_date.tv_usec / 1000000.0);
+	return result;
+}
+
 VALUE sanspleur_set_current_thread_to_sample(VALUE self)
 {
 	thread_to_sample = rb_curr_thread;
