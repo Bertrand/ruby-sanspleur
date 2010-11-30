@@ -7,10 +7,12 @@
  *
  */
 
+#ifndef GENERIC_TICKER
+#define GENERIC_TICKER
 
 class GenericTicker {
 	protected:
-		virtual ~GenericTick() = 0;
+		virtual ~GenericTicker() = 0;
 		
 	public:
 		virtual double anchor_difference() = 0;
@@ -21,3 +23,5 @@ class GenericTicker {
 		virtual void start() = 0;
 		virtual void stop() = 0;
 };
+
+#endif

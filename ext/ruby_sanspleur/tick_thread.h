@@ -8,7 +8,7 @@
  */
 
 #include <pthread.h>
-#include "genericer_ticker.h"
+#include "generic_ticker.h"
 
 class TickThread : public GenericTicker {
 	protected:

@@ -15,6 +15,7 @@
 #include "ruby_sanspleur.h"
 #include "stack_trace_sample.h"
 #include "tick_thread.h"
+#include "signal_tick.h"
 
 #define STRING_BUFFER_SIZE 1024
 
@@ -204,7 +205,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 		sample = new StackTraceSample(usleep_int, url_string);
 	}
 	start_sample_date = DumperFile::get_current_time();
-	ticker	= new TickThread(usleep_int);
+	ticker = new SignalTick(usleep_int);
 	ticker->start();
 	sanspleur_install_sampler_hook();
 	return Qnil;
