@@ -1,0 +1,121 @@
+/*
+ *  signal_tick.c
+ *  ruby-sanspleur
+ *
+ *  Created by Jérôme Lebel on 13/10/10.
+ *  Copyright 2010 Fotonauts. All rights reserved.
+ *
+ */
+
+#include "signal_tick.h"
+#include "sampler.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/time.h>
+
+#include <signal.h> 
+#include <stdio.h> 
+#include <string.h> 
+
+
+double global_thread_time = 0;
+int global_tick_count = 0;
+int global_usleep_value = 0;
+
+static void timer_handler(int signal)
+{
+	global_thread_time += global_usleep_value / 1000000.0;
+	global_tick_count++;
+}
+
+SignalTick::SignalTick(int usleep_value)
+{
+	_thread_time = ::sanspleur_get_current_time();
+	_anchor_time = _thread_time;
+	_usleep_value = usleep_value;
+	_thread_running = 0;
+	_tick_count = 0;
+}
+
+SignalTick::~SignalTick()
+{
+}
+
+double SignalTick::anchor_difference()
+{
+	return global_thread_time - _anchor_time;
+}
+
+void SignalTick::update_anchor()
+{
+	_anchor_time = global_thread_time;
+	global_tick_count = 0;
+}
+
+double SignalTick::anchor_value()
+{
+	return _anchor_time;
+}
+
+int SignalTick::anchor_tick_value()
+{
+	return global_tick_count;
+}
+
+void SignalTick::start()
+{
+	struct sigaction sa;
+	struct itimerval timer;
+	
+	_thread_running = 1;
+	
+	global_thread_time = 0;
+	global_usleep_value = _usleep_value;
+	_anchor_time = global_thread_time;
+
+	memset (&sa, 0, sizeof (sa));
+    sa.sa_flags = SA_RESTART;
+	sa.sa_handler = &timer_handler;
+	sigaction (SIGALRM, &sa, NULL);
+
+	timer.it_value.tv_sec = 0;
+	timer.it_value.tv_usec = _usleep_value;
+	timer.it_interval.tv_sec = 0;
+	timer.it_interval.tv_usec = _usleep_value;
+	setitimer(ITIMER_REAL, &timer, NULL);
+}
+
+void SignalTick::stop()
+{
+	struct sigaction sa;
+	struct itimerval timer;
+	
+	_thread_running = 0;
+	
+	timer.it_value.tv_sec = 0;
+	timer.it_value.tv_usec = 0;
+	timer.it_interval.tv_sec = 0;
+	timer.it_interval.tv_usec = 0;
+	setitimer(ITIMER_REAL, &timer, NULL);
+
+	memset (&sa, 0, sizeof (sa));
+	sa.sa_handler = NULL;
+	sigaction (SIGALRM, &sa, NULL);
+}
+
+void *SignalTick::_thread_action()
+{
+	double last_time;
+	
+	last_time = get_current_time();
+	while (_thread_running) {
+		double current_time;
+		
+		usleep(_usleep_value);
+		_thread_time = ::sanspleur_get_current_time();
+		last_time = current_time;
+		_tick_count++;
+	}
+	free(this);
+	return NULL;
+}

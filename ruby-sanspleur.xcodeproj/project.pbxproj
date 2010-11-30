@@ -43,6 +43,8 @@
 		02565CBB128071BA000BF1DF /* stack_trace_sample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stack_trace_sample.cpp; sourceTree = "<group>"; };
 		02565CE012807A03000BF1DF /* dumper_file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dumper_file.h; sourceTree = "<group>"; };
 		02565CE112807A03000BF1DF /* dumper_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dumper_file.cpp; sourceTree = "<group>"; };
+		02E1538F12A5484500959845 /* signal_tick.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = signal_tick.cpp; sourceTree = "<group>"; };
+		02E1539012A5484500959845 /* signal_tick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signal_tick.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -79,6 +81,8 @@
 				024097B41265EB7300925952 /* version.h */,
 				024097BD1265F1E500925952 /* tick_thread.h */,
 				024097BE1265F1E500925952 /* tick_thread.cpp */,
+				02E1539012A5484500959845 /* signal_tick.h */,
+				02E1538F12A5484500959845 /* signal_tick.cpp */,
 				0240FD29126845A600925952 /* sampler.h */,
 				0240FD2A126845A600925952 /* sampler.cpp */,
 				02565CBA128071BA000BF1DF /* stack_trace_sample.h */,
