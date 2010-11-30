@@ -26,7 +26,7 @@ extern "C" {
 
 static rb_thread_t thread_to_sample = NULL;
 
-static TickThread *tick_thread = NULL;
+static GenericTicker *ticker = NULL;
 static StackTraceSample *sample = NULL;
 static DumperFile *dumper = NULL;
 static int skip_writting = 0;
@@ -43,7 +43,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 	if (sample) {
 		sample->thread_called();
 	}
-	sample_duration = tick_thread->anchor_difference();
+	sample_duration = ticker->anchor_difference();
 	if (thread_to_sample == rb_curr_thread && sample_duration != 0) {
 		struct FRAME *frame = ruby_frame;
     	NODE *n;
@@ -51,7 +51,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		
 		new_trace = (struct stack_trace *)calloc(1, sizeof(*new_trace));
         new_trace->sample_duration = sample_duration;
-		new_trace->sample_tick_count = tick_thread->anchor_tick_value();
+		new_trace->sample_tick_count = ticker->anchor_tick_value();
 		new_trace->ruby_event = event;
 		new_trace->call_method = sanspleur_copy_string(rb_id2name(mid));
 		
@@ -95,7 +95,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		if (dumper) {
 			dumper->write_stack_trace(new_trace);
 		}
-		tick_thread->update_anchor();
+		ticker->update_anchor();
 	}
 }
 
@@ -185,9 +185,9 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 		delete dumper;
 		dumper = NULL;
 	}
-	if (tick_thread) {
-		tick_thread->stop();
-		tick_thread = NULL;
+	if (ticker) {
+		ticker->stop();
+		ticker = NULL;
 	}
 	usleep_int = NUM2INT(usleep_value);
 	if (file_name != Qnil) {
@@ -204,8 +204,8 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 		sample = new StackTraceSample(usleep_int, url_string);
 	}
 	start_sample_date = DumperFile::get_current_time();
-	tick_thread	= new TickThread(usleep_int);
-	tick_thread->start();
+	ticker	= new TickThread(usleep_int);
+	ticker->start();
 	sanspleur_install_sampler_hook();
 	return Qnil;
 }
@@ -217,8 +217,8 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 	int count = 0;
 	
 	sanspleur_remove_sampler_hook();
-	tick_thread->stop();
-	tick_thread = NULL;
+	ticker->stop();
+	ticker = NULL;
 	
 	if (extra_info && extra_info != Qnil) {
 		extra_info_string = StringValueCStr(extra_info);

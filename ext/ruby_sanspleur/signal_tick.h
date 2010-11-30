@@ -7,7 +7,9 @@
  *
  */
 
-class SignalTick {
+#include "generic_ticker.h"
+
+class SignalTick : public GenericTicker {
 	protected:
 		double _anchor_time;
 		double _thread_time;

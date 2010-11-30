@@ -8,8 +8,9 @@
  */
 
 #include <pthread.h>
+#include "genericer_ticker.h"
 
-class TickThread {
+class TickThread : public GenericTicker {
 	protected:
 		double _anchor_time;
 		double _thread_time;
