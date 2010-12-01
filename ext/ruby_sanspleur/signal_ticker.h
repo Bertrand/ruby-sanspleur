@@ -25,7 +25,8 @@ class SignalTicker : public GenericTicker {
 		double anchor_difference();
 		void update_anchor();
 		double anchor_value();
-		int anchor_tick_value();
+		long long anchor_tick_value();
+		long long total_tick_count();
 		
 		void start();
 		void stop();

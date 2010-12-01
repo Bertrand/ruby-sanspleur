@@ -32,7 +32,7 @@ class DumperFile
 		int write_integer_in_file(int integer);
 		int write_pointer_in_file(const void *pointer);
 		int write_double_in_file(double number);
-		void write_footer(double duration, const char *extra_info);
+		void write_footer(double duration, long long tick_count, const char *extra_info);
 		
 	public:
 		static double get_current_time();
@@ -43,7 +43,7 @@ class DumperFile
 		
 		void open_file_with_sample(const char *url, int usleep_value, const char *start_date, const char *extra_info);
 		void write_stack_trace_sample(StackTraceSample* sample);
-		void close_file_with_info(double duration, const char *extra_info);
+		void close_file_with_info(double duration, long long tick_count, const char *extra_info);
 		void write_stack_trace(struct stack_trace *trace);
 		void skip_writting(bool skip);
 };

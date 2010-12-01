@@ -17,7 +17,8 @@ class ThreadTicker : public GenericTicker {
 		int _usleep_value;
 		int _thread_running;
 		pthread_t _thread;
-		int _tick_count;
+		long long _tick_count;
+		long long _total_tick_count;
 
 		~ThreadTicker();
 		
@@ -27,7 +28,8 @@ class ThreadTicker : public GenericTicker {
 		double anchor_difference();
 		void update_anchor();
 		double anchor_value();
-		int anchor_tick_value();
+		long long anchor_tick_value();
+		long long total_tick_count();
 		
 		void start();
 		void stop();

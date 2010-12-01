@@ -46,7 +46,7 @@ DumperFile::DumperFile(const char *filename)
 
 DumperFile::~DumperFile()
 {
-	this->close_file_with_info(-1, NULL);
+	this->close_file_with_info(-1, 0, NULL);
 	if (_filename) {
 		free((void *)_filename);
 	}
@@ -66,10 +66,10 @@ void DumperFile::open_file_with_sample(const char *url, int usleep_value, const 
 	}
 }
 
-void DumperFile::close_file_with_info(double duration, const char *extra_info)
+void DumperFile::close_file_with_info(double duration, long long tick_count, const char *extra_info)
 {
 	if (_file) {
-		write_footer(duration, extra_info);
+		write_footer(duration, tick_count, extra_info);
 #ifdef USE_FOPEN
 		fclose(_file);
 		_file = 0;
@@ -91,16 +91,16 @@ void DumperFile::write_header(const char *url, int usleep_value, const char *sta
 	}
 }
 
-void DumperFile::write_footer(double duration, const char *extra_info)
+void DumperFile::write_footer(double duration, long long tick_count, const char *extra_info)
 {
 	if (_file) {
 		struct timeval stop_date;
 		
 		gettimeofday(&stop_date, NULL);
 		if (extra_info) {
-			write_string_in_file("\n--\n%.2f\n%.2f\n%s\n", duration, DumperFile::get_current_time() - _start_time, extra_info);
+			write_string_in_file("\n--\n%.2f\n%.2f\n%lld\n%s\n", duration, DumperFile::get_current_time() - _start_time, tick_count, extra_info);
 		} else {
-			write_string_in_file("\n--\n%.2f\n%.2f\n", duration, DumperFile::get_current_time() - _start_time, extra_info);
+			write_string_in_file("\n--\n%.2f\n%.2f\n%lld\n", duration, DumperFile::get_current_time() - _start_time, tick_count);
 		}
 	}
 }

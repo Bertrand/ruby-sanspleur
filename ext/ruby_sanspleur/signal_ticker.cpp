@@ -49,7 +49,7 @@ double SignalTicker::anchor_difference()
 void SignalTicker::update_anchor()
 {
 	_anchor_time = global_thread_time;
-	global_tick_count = 0;
+	_tick_count = global_tick_count;
 }
 
 double SignalTicker::anchor_value()
@@ -57,7 +57,12 @@ double SignalTicker::anchor_value()
 	return _anchor_time;
 }
 
-int SignalTicker::anchor_tick_value()
+long long SignalTicker::anchor_tick_value()
+{
+	return global_tick_count - _tick_count;
+}
+
+long long SignalTicker::total_tick_count()
 {
 	return global_tick_count;
 }

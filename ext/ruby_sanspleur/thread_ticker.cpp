@@ -30,6 +30,7 @@ ThreadTicker::ThreadTicker(int usleep_value)
 	_usleep_value = usleep_value;
 	_thread_running = 0;
 	_tick_count = 0;
+	_total_tick_count = 0;
 }
 
 ThreadTicker::~ThreadTicker()
@@ -44,7 +45,7 @@ double ThreadTicker::anchor_difference()
 void ThreadTicker::update_anchor()
 {
 	_anchor_time = _thread_time;
-	_tick_count = 0;
+	_tick_count = _total_tick_count;
 }
 
 double ThreadTicker::anchor_value()
@@ -52,9 +53,14 @@ double ThreadTicker::anchor_value()
 	return _anchor_time;
 }
 
-int ThreadTicker::anchor_tick_value()
+long long ThreadTicker::anchor_tick_value()
 {
-	return _tick_count;
+	return _total_tick_count - _tick_count;
+}
+
+long long ThreadTicker::total_tick_count()
+{
+	return _total_tick_count;
 }
 
 void ThreadTicker::start()
@@ -79,7 +85,7 @@ void *ThreadTicker::_thread_action()
 		usleep(_usleep_value);
 		_thread_time = sanspleur_get_current_time();
 		last_time = current_time;
-		_tick_count++;
+		_total_tick_count++;
 	}
 	free(this);
 	return NULL;

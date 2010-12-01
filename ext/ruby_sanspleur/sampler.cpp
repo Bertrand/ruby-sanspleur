@@ -215,9 +215,11 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 {
 	const char *extra_info_string = NULL;
 	struct FRAME *test = ruby_frame;
+	long long total_ticker_count;
 	int count = 0;
 	
 	sanspleur_remove_sampler_hook();
+	total_ticker_count = ticker->total_tick_count();
 	ticker->stop();
 	ticker = NULL;
 	
@@ -228,7 +230,7 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 		sample->set_extra_ending_info(extra_info_string);
 	}
 	if (dumper) {
-		dumper->close_file_with_info(DumperFile::get_current_time() - start_sample_date, extra_info_string);
+		dumper->close_file_with_info(DumperFile::get_current_time() - start_sample_date, total_ticker_count, extra_info_string);
 		delete dumper;
 		dumper = NULL;
 	}
@@ -258,7 +260,7 @@ static void write_sample_to_disk(StackTraceSample *sample, char *filename, doubl
 	dumper = new DumperFile(filename);
 	dumper->open_file_with_sample(sample->get_url(), sample->get_interval(), sample->get_start_date_string(), sample->get_extra_beginning_info());
 	dumper->write_stack_trace_sample(sample);
-	dumper->close_file_with_info(duration, sample->get_extra_ending_info());
+	dumper->close_file_with_info(duration, ticker->total_tick_count(), sample->get_extra_ending_info());
 	delete dumper;
 }
 
