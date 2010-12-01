@@ -1,5 +1,5 @@
 /*
- *  signal_tick.h
+ *  thread_ticker.h
  *  ruby-sanspleur
  *
  *  Created by Jérôme Lebel on 13/10/10.
@@ -7,20 +7,22 @@
  *
  */
 
+#include <pthread.h>
 #include "generic_ticker.h"
 
-class SignalTick : public GenericTicker {
+class ThreadTicker : public GenericTicker {
 	protected:
 		double _anchor_time;
 		double _thread_time;
 		int _usleep_value;
 		int _thread_running;
+		pthread_t _thread;
 		int _tick_count;
 
-		~SignalTick();
+		~ThreadTicker();
 		
 	public:
-		SignalTick(int usleep_value);
+		ThreadTicker(int usleep_value);
 		
 		double anchor_difference();
 		void update_anchor();
@@ -29,4 +31,6 @@ class SignalTick : public GenericTicker {
 		
 		void start();
 		void stop();
+
+		void *_thread_action();
 };

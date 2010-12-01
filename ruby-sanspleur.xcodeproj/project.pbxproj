@@ -26,8 +26,8 @@
 		024097A01265EB7300925952 /* debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug.h; sourceTree = "<group>"; };
 		024097A11265EB7300925952 /* extconf.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = extconf.rb; sourceTree = "<group>"; };
 		024097B41265EB7300925952 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
-		024097BD1265F1E500925952 /* tick_thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tick_thread.h; sourceTree = "<group>"; };
-		024097BE1265F1E500925952 /* tick_thread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tick_thread.cpp; sourceTree = "<group>"; };
+		024097BD1265F1E500925952 /* thread_ticker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = thread_ticker.h; sourceTree = "<group>"; };
+		024097BE1265F1E500925952 /* thread_ticker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = thread_ticker.cpp; sourceTree = "<group>"; };
 		0240FD29126845A600925952 /* sampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sampler.h; sourceTree = "<group>"; };
 		0240FD2A126845A600925952 /* sampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sampler.cpp; sourceTree = "<group>"; };
 		025510C512786E2500746143 /* ruby-sanspleur */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "ruby-sanspleur"; sourceTree = "<group>"; };
@@ -43,8 +43,8 @@
 		02565CBB128071BA000BF1DF /* stack_trace_sample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stack_trace_sample.cpp; sourceTree = "<group>"; };
 		02565CE012807A03000BF1DF /* dumper_file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dumper_file.h; sourceTree = "<group>"; };
 		02565CE112807A03000BF1DF /* dumper_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dumper_file.cpp; sourceTree = "<group>"; };
-		02E1538F12A5484500959845 /* signal_tick.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = signal_tick.cpp; sourceTree = "<group>"; };
-		02E1539012A5484500959845 /* signal_tick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signal_tick.h; sourceTree = "<group>"; };
+		02E1538F12A5484500959845 /* signal_ticker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = signal_ticker.cpp; sourceTree = "<group>"; };
+		02E1539012A5484500959845 /* signal_ticker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = signal_ticker.h; sourceTree = "<group>"; };
 		02E153B512A559D000959845 /* generic_ticker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = generic_ticker.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -87,10 +87,10 @@
 				02565CE012807A03000BF1DF /* dumper_file.h */,
 				02565CE112807A03000BF1DF /* dumper_file.cpp */,
 				02E153B512A559D000959845 /* generic_ticker.h */,
-				024097BD1265F1E500925952 /* tick_thread.h */,
-				024097BE1265F1E500925952 /* tick_thread.cpp */,
-				02E1539012A5484500959845 /* signal_tick.h */,
-				02E1538F12A5484500959845 /* signal_tick.cpp */,
+				024097BD1265F1E500925952 /* thread_ticker.h */,
+				024097BE1265F1E500925952 /* thread_ticker.cpp */,
+				02E1539012A5484500959845 /* signal_ticker.h */,
+				02E1538F12A5484500959845 /* signal_ticker.cpp */,
 			);
 			path = ruby_sanspleur;
 			sourceTree = "<group>";

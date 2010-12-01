@@ -1,5 +1,5 @@
 /*
- *  signal_tick.c
+ *  signal_ticker.c
  *  ruby-sanspleur
  *
  *  Created by Jérôme Lebel on 13/10/10.
@@ -7,7 +7,7 @@
  *
  */
 
-#include "signal_tick.h"
+#include "signal_ticker.h"
 #include "sampler.h"
 #include <unistd.h>
 #include <stdlib.h>
@@ -28,7 +28,7 @@ static void timer_handler(int signal)
 	global_tick_count++;
 }
 
-SignalTick::SignalTick(int usleep_value)
+SignalTicker::SignalTicker(int usleep_value)
 {
 	_thread_time = sanspleur_get_current_time();
 	_anchor_time = _thread_time;
@@ -37,32 +37,32 @@ SignalTick::SignalTick(int usleep_value)
 	_tick_count = 0;
 }
 
-SignalTick::~SignalTick()
+SignalTicker::~SignalTicker()
 {
 }
 
-double SignalTick::anchor_difference()
+double SignalTicker::anchor_difference()
 {
 	return global_thread_time - _anchor_time;
 }
 
-void SignalTick::update_anchor()
+void SignalTicker::update_anchor()
 {
 	_anchor_time = global_thread_time;
 	global_tick_count = 0;
 }
 
-double SignalTick::anchor_value()
+double SignalTicker::anchor_value()
 {
 	return _anchor_time;
 }
 
-int SignalTick::anchor_tick_value()
+int SignalTicker::anchor_tick_value()
 {
 	return global_tick_count;
 }
 
-void SignalTick::start()
+void SignalTicker::start()
 {
 	struct sigaction sa;
 	struct itimerval timer;
@@ -85,7 +85,7 @@ void SignalTick::start()
 	setitimer(ITIMER_REAL, &timer, NULL);
 }
 
-void SignalTick::stop()
+void SignalTicker::stop()
 {
 	struct sigaction sa;
 	struct itimerval timer;

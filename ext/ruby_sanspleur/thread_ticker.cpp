@@ -1,5 +1,5 @@
 /*
- *  tick_thread.c
+ *  thread_ticker.c
  *  ruby-sanspleur
  *
  *  Created by Jérôme Lebel on 13/10/10.
@@ -7,7 +7,7 @@
  *
  */
 
-#include "tick_thread.h"
+#include "thread_ticker.h"
 #include "sampler.h"
 #include <pthread.h>
 #include <unistd.h>
@@ -18,12 +18,12 @@ static void *thread_function(void *instance)
 {
 	void *result;
 	
-	result = ((TickThread *)instance)->_thread_action();
+	result = ((ThreadTicker *)instance)->_thread_action();
 	pthread_exit(result);
 	return result;
 }
 
-TickThread::TickThread(int usleep_value)
+ThreadTicker::ThreadTicker(int usleep_value)
 {
 	_thread_time = sanspleur_get_current_time();
 	_anchor_time = _thread_time;
@@ -32,43 +32,43 @@ TickThread::TickThread(int usleep_value)
 	_tick_count = 0;
 }
 
-TickThread::~TickThread()
+ThreadTicker::~ThreadTicker()
 {
 }
 
-double TickThread::anchor_difference()
+double ThreadTicker::anchor_difference()
 {
 	return _thread_time - _anchor_time;
 }
 
-void TickThread::update_anchor()
+void ThreadTicker::update_anchor()
 {
 	_anchor_time = _thread_time;
 	_tick_count = 0;
 }
 
-double TickThread::anchor_value()
+double ThreadTicker::anchor_value()
 {
 	return _anchor_time;
 }
 
-int TickThread::anchor_tick_value()
+int ThreadTicker::anchor_tick_value()
 {
 	return _tick_count;
 }
 
-void TickThread::start()
+void ThreadTicker::start()
 {
 	_thread_running = 1;
 	pthread_create(&_thread, NULL, thread_function, this);
 }
 
-void TickThread::stop()
+void ThreadTicker::stop()
 {
 	_thread_running = 0;
 }
 
-void *TickThread::_thread_action()
+void *ThreadTicker::_thread_action()
 {
 	double last_time;
 	
