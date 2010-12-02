@@ -77,8 +77,6 @@ void ThreadTicker::stop()
 void *ThreadTicker::_thread_action()
 {
 	while (_thread_running) {
-		double current_time;
-		
 		usleep(_usleep_value);
 //		_thread_time = sanspleur_get_current_time();
 		_thread_time += _usleep_value;

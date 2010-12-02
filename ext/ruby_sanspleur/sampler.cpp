@@ -308,6 +308,14 @@ VALUE sanspleur_save_current_sample(VALUE self, VALUE filename, VALUE in_thread)
 	return Qnil;
 }
 
+VALUE sanspleur_cancel_current_sample(VALUE self)
+{
+	if (sample) {
+		delete sample;
+		sample = NULL;
+	}
+}
+
 VALUE sanspleur_skip_writting_to_debug(VALUE self, VALUE skip)
 {
 	skip_writting = NUM2INT(skip);
