@@ -205,7 +205,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 		sample = new StackTraceSample(usleep_int, url_string);
 	}
 	start_sample_date = DumperFile::get_current_time();
-	ticker = new SignalTicker(usleep_int);
+	ticker = new ThreadTicker(usleep_int);
 	ticker->start();
 	sanspleur_install_sampler_hook();
 	return Qnil;
