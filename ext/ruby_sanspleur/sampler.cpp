@@ -16,6 +16,7 @@
 #include "stack_trace_sample.h"
 #include "thread_ticker.h"
 #include "signal_ticker.h"
+#include "st.h"
 
 #define STRING_BUFFER_SIZE 1024
 
@@ -32,6 +33,14 @@ static StackTraceSample *sample = NULL;
 static DumperFile *dumper = NULL;
 static int skip_writting = 0;
 static double start_sample_date = 0;
+static st_table *file_name_table = NULL;
+static st_table *function_name_table = NULL;
+
+void sanspleur_init()
+{
+	file_name_table = st_init_strtable();
+	function_name_table = st_init_strtable();
+}
 
 #ifdef RUBY_VM
 static void sanspleur_sampler_event_hook(rb_event_flag_t event, VALUE data, VALUE self, ID mid, VALUE klass)
@@ -86,8 +95,16 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 			new_line->file_name = sanspleur_copy_string(file_name);
 			new_line->function_name = sanspleur_copy_string(function_name);
 #else
-			new_line->file_name = file_name;
-			new_line->function_name = function_name;
+			if (!st_lookup(file_name_table, (st_data_t)file_name, (st_data_t *)&new_line->file_name)) {
+				file_name = sanspleur_copy_string(file_name);
+				st_insert(file_name_table, (st_data_t)file_name, (st_data_t)file_name);
+				new_line->file_name = file_name;
+			}
+			if (!st_lookup(function_name_table, (st_data_t)function_name, (st_data_t *)&new_line->function_name)) {
+				function_name = sanspleur_copy_string(function_name);
+				st_insert(function_name_table, (st_data_t)function_name, (st_data_t)function_name);
+				new_line->function_name = function_name;
+			}
 #endif
 		}
 		if (sample) {

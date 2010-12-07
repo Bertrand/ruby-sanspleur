@@ -30,6 +30,7 @@ extern "C" {
 	
 	char *sanspleur_copy_string(const char *string);
 	double sanspleur_get_current_time();
+	void sanspleur_init();
 	
 #ifdef __cplusplus 
 }
