@@ -17,10 +17,10 @@ static void empty_stack_line(struct stack_line *line)
 		
 #if COPY_RUBY_STRING
 		if (line->function_name) {
-			free(line->function_name);
+			free((void *)line->function_name);
 		}
 		if (line->file_name) {
-			free(line->file_name);
+			free((void *)line->file_name);
 		}
 #endif
 		tmp = line->next_stack_line;
