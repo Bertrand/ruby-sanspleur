@@ -14,6 +14,7 @@ struct stack_line {
 	int line_number;
 	const char *file_name;
 	const char *function_name;
+	const char *class_name;
 	struct stack_line *next_stack_line;
 	ID function_id;
 };

@@ -35,11 +35,13 @@ static int skip_writting = 0;
 static double start_sample_date = 0;
 static st_table *file_name_table = NULL;
 static st_table *function_name_table = NULL;
+static st_table *class_name_table = NULL;
 
 void sanspleur_init()
 {
 	file_name_table = st_init_strtable();
 	function_name_table = st_init_strtable();
+	class_name_table = st_init_strtable();
 }
 
 #ifdef RUBY_VM
@@ -70,6 +72,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 			const char *file_name = n->nd_file;
 			struct stack_line *new_line;
 			ID function_id = 0;
+			const char *class_name = NULL;
 			
 			if (frame->prev && frame->prev->last_func) {
 				if (frame->prev->node == n) {
@@ -78,12 +81,16 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 				
 				function_id = frame->prev->last_func;
 				function_name = rb_id2name(frame->prev->last_func);
+				class_name = rb_class2name(frame->prev->last_class);
 			}
 			if (function_name == NULL) {
 				function_name = "";
 			}
 			if (file_name == NULL) {
 				file_name = "";
+			}
+			if (class_name == NULL) {
+				class_name = "";
 			}
 			
 			new_line = (struct stack_line *)calloc(1, sizeof(*new_line));
@@ -94,6 +101,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 #if COPY_RUBY_STRING
 			new_line->file_name = sanspleur_copy_string(file_name);
 			new_line->function_name = sanspleur_copy_string(function_name);
+			new_line->class_name = sanspleur_copy_string(class_name);
 #else
 			if (!st_lookup(file_name_table, (st_data_t)file_name, (st_data_t *)&new_line->file_name)) {
 				file_name = sanspleur_copy_string(file_name);
@@ -104,6 +112,11 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 				function_name = sanspleur_copy_string(function_name);
 				st_insert(function_name_table, (st_data_t)function_name, (st_data_t)function_name);
 				new_line->function_name = function_name;
+			}
+			if (!st_lookup(class_name_table, (st_data_t)class_name, (st_data_t *)&new_line->class_name)) {
+				class_name = sanspleur_copy_string(class_name);
+				st_insert(class_name_table, (st_data_t)class_name, (st_data_t)class_name);
+				new_line->class_name = function_name;
 			}
 #endif
 		}

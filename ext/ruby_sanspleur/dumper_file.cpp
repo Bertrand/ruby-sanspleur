@@ -149,6 +149,7 @@ void DumperFile::write_stack_line_in_file(struct stack_line *line, struct stack_
 	"%s\t" // 6: function name
 	"%s\t" // 7: call method
 	"%f\t" // 8: sample duration
+	"%s\t" // 9: class name
 	"\n%s", // suffix
 	trace->sample_tick_count, // 1: time
 	line->file_name, // 2: file
@@ -158,6 +159,7 @@ void DumperFile::write_stack_line_in_file(struct stack_line *line, struct stack_
 	line->function_name, // 6: function name
 	trace->call_method, // 7: call method
 	trace->sample_duration, // 8: sample duration
+	line->class_name, // 9: class name
 	suffix
 	);
 }
