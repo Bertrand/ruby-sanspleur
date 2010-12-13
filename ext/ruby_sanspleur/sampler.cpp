@@ -50,13 +50,13 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, VALUE data, VALU
 static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALUE self, ID mid, VALUE klass)
 #endif
 {
-	double sample_duration;
+	double sample_duration = 0;
     
-	if (sample) {
+	if (thread_to_sample == rb_curr_thread && sample && ticker) {
 		sample->thread_called();
+		sample_duration = ticker->anchor_difference();
 	}
-	sample_duration = ticker->anchor_difference();
-	if (thread_to_sample == rb_curr_thread && sample_duration != 0) {
+	if (sample_duration != 0) {
 		struct FRAME *frame = ruby_frame;
     	NODE *n;
 		struct stack_trace *new_trace;
