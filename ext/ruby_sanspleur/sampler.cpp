@@ -52,8 +52,10 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 {
 	double sample_duration = 0;
     
-	if (thread_to_sample == rb_curr_thread && sample && ticker) {
+	if (thread_to_sample == rb_curr_thread && sample) {
 		sample->thread_called();
+	}
+	if (thread_to_sample == rb_curr_thread && ticker) {
 		sample_duration = ticker->anchor_difference();
 	}
 	if (sample_duration != 0) {
