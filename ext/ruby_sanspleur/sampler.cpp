@@ -50,6 +50,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, VALUE data, VALU
 static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALUE self, ID mid, VALUE klass)
 #endif
 {
+return;
 	double sample_duration = 0;
     
 	if (thread_to_sample == rb_curr_thread && sample) {
@@ -251,14 +252,17 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 	int count = 0;
 	
 	sanspleur_remove_sampler_hook();
-	total_ticker_count = ticker->total_tick_count();
-	ticker->stop();
-	ticker = NULL;
+	if (ticker) {
+		total_ticker_count = ticker->total_tick_count();
+		ticker->stop();
+		ticker = NULL;
+	}
 	
 	if (extra_info && extra_info != Qnil) {
 		extra_info_string = StringValueCStr(extra_info);
 	}
 	if (sample) {
+		sample->set_total_tick_count(total_ticker_count);
 		sample->set_extra_ending_info(extra_info_string);
 	}
 	if (dumper) {
@@ -292,7 +296,7 @@ static void write_sample_to_disk(StackTraceSample *sample, char *filename, doubl
 	dumper = new DumperFile(filename);
 	dumper->open_file_with_sample(sample->get_url(), sample->get_interval(), sample->get_start_date_string(), sample->get_extra_beginning_info());
 	dumper->write_stack_trace_sample(sample);
-	dumper->close_file_with_info(duration, ticker->total_tick_count(), sample->get_extra_ending_info());
+	dumper->close_file_with_info(duration, sample->get_total_tick_count(), sample->get_extra_ending_info());
 	delete dumper;
 }
 
@@ -346,6 +350,7 @@ VALUE sanspleur_cancel_current_sample(VALUE self)
 		delete sample;
 		sample = NULL;
 	}
+	return Qnil;
 }
 
 VALUE sanspleur_skip_writting_to_debug(VALUE self, VALUE skip)

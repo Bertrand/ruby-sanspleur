@@ -36,6 +36,7 @@ class StackTraceSample {
 		struct stack_trace *_last_stack_trace;
 		int _thread_called_count;
 		int _stack_trace_count;
+		int _total_tick_count;
 		const char *_beginning_info;
 		const char *_ending_info;
 		const char *_url;
@@ -57,6 +58,8 @@ class StackTraceSample {
 		int get_interval();
 		struct stack_trace *get_first_stack_trace();
 		const char* get_url();
+		void set_total_tick_count(int count);
+		int get_total_tick_count();
 		
 		void add_new_stack_trace(struct stack_trace *new_trace);
 };

@@ -174,3 +174,13 @@ void StackTraceSample::add_new_stack_trace(struct stack_trace *new_trace)
 	_last_stack_trace->next_stack_trace = NULL;
 	_stack_trace_count++;
 }
+
+void StackTraceSample::set_total_tick_count(int count)
+{
+	_total_tick_count = count;
+}
+
+int StackTraceSample::get_total_tick_count()
+{
+	return _total_tick_count;
+}
