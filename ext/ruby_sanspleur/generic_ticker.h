@@ -11,9 +11,6 @@
 #define GENERIC_TICKER
 
 class GenericTicker {
-	protected:
-		virtual ~GenericTicker() = 0;
-		
 	public:
 		virtual double anchor_difference() = 0;
 		virtual void update_anchor() = 0;
