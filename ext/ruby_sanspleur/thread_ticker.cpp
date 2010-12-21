@@ -82,6 +82,6 @@ void *ThreadTicker::_thread_action()
 		_thread_time += _usleep_value;
 		_total_tick_count++;
 	}
-	free(this);
+	delete this;
 	return NULL;
 }
