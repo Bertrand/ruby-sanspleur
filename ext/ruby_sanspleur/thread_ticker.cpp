@@ -16,7 +16,7 @@
 
 static void *thread_function(void *instance)
 {
-	void *result;
+	void *result = NULL;
 	
 	result = ((ThreadTicker *)instance)->_thread_action();
 	pthread_exit(result);
@@ -71,7 +71,9 @@ void ThreadTicker::start()
 
 void ThreadTicker::stop()
 {
-	_thread_running = 0;
+//	_thread_running = 0;
+	_total_tick_count = 0;
+	_thread_time = 0;
 }
 
 void *ThreadTicker::_thread_action()

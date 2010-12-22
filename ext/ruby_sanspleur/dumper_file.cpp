@@ -8,6 +8,7 @@
  */
 
 #include "dumper_file.h"
+#include "info_header.h"
 #include "sampler.h"
 #include "stack_trace_sample.h"
 #include "version.h"
@@ -52,7 +53,7 @@ DumperFile::~DumperFile()
 	}
 }
 
-void DumperFile::open_file_with_sample(const char *url, int usleep_value, const char *start_date, const char *extra_info)
+void DumperFile::open_file_with_header(const InfoHeader *info_header)
 {
 #ifdef USE_FOPEN
 	_file = fopen(_filename, "w");
@@ -61,8 +62,8 @@ void DumperFile::open_file_with_sample(const char *url, int usleep_value, const 
 #endif
 	if (_file) {
 		_start_time = DumperFile::get_current_time();
-		this->write_header(url, usleep_value, start_date, extra_info);
-		_usleep_value = usleep_value;
+		this->write_info_header(info_header);
+		_usleep_value = info_header->get_usleep_int();
 	}
 }
 
@@ -80,13 +81,13 @@ void DumperFile::close_file_with_info(double duration, long long tick_count, con
 	}
 }
 
-void DumperFile::write_header(const char *url, int usleep_value, const char *start_date, const char *extra_info)
+void DumperFile::write_info_header(const InfoHeader *info_header)
 {
 	if (_file) {
-		if (extra_info) {
-	        write_string_in_file("%s\n%s\n%d\n%s\n%s\n--\n", RUBY_SANSPLEUR_VERSION, url, usleep_value, start_date, extra_info);
+		if (info_header->get_extra_info_string()) {
+	        write_string_in_file("%s\n%s\n%d\n%s\n%s\n--\n", RUBY_SANSPLEUR_VERSION, info_header->get_url_string(), info_header->get_usleep_int(), info_header->get_start_date(), info_header->get_extra_info_string());
 		} else {
-	        write_string_in_file("%s\n%s\n%d\n%s\n--\n", RUBY_SANSPLEUR_VERSION, url, usleep_value, start_date);
+	        write_string_in_file("%s\n%s\n%d\n%s\n--\n", RUBY_SANSPLEUR_VERSION, info_header->get_url_string(), info_header->get_usleep_int(), info_header->get_start_date());
 		}
 	}
 }

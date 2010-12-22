@@ -10,6 +10,7 @@
 #include <sys/time.h>
 
 class StackTraceSample;
+class InfoHeader;
 
 #define USE_FOPEN
 
@@ -26,7 +27,7 @@ class DumperFile
 		int _usleep_value;
 		bool _skip_writting;
 	
-		void write_header(const char *url, int usleep_value, const char *start_date, const char *extra_info);
+		void write_info_header(const InfoHeader *header);
 		void write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace, const char *suffix);
 		int write_string_in_file(const char *string, ...);
 		int write_integer_in_file(int integer);
@@ -41,7 +42,7 @@ class DumperFile
 		DumperFile(const char *filename);
 		~DumperFile();
 		
-		void open_file_with_sample(const char *url, int usleep_value, const char *start_date, const char *extra_info);
+		void open_file_with_header(const InfoHeader *header);
 		void write_stack_trace_sample(StackTraceSample* sample);
 		void close_file_with_info(double duration, long long tick_count, const char *extra_info);
 		void write_stack_trace(struct stack_trace *trace);

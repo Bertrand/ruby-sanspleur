@@ -8,6 +8,7 @@
  */
 
 #include "stack_trace_sample.h"
+#include "info_header.h"
 #include <time.h>
 
 static void empty_stack_line(struct stack_line *line)
@@ -69,21 +70,21 @@ const char *StackTraceSample::current_date_string()
 	return buffer;
 }
 
-StackTraceSample::StackTraceSample(int interval, const char *url)
+StackTraceSample::StackTraceSample(const InfoHeader *info_header)
 {
+	_info_header = info_header->copy();
 	_first_stack_trace = NULL;
 	_last_stack_trace = NULL;
 	_thread_called_count = 0;
 	_stack_trace_count = 0;
-	_beginning_info = NULL;
 	_ending_info = NULL;
-	_interval = interval;
-	_url = sanspleur_copy_string(url);
-	_start_date_string = StackTraceSample::current_date_string();
 }
 
 StackTraceSample::~StackTraceSample()
 {
+	if (_info_header) {
+		delete _info_header;
+	}
 	while (_first_stack_trace) {
 		struct stack_trace *tmp;
         
@@ -94,40 +95,15 @@ StackTraceSample::~StackTraceSample()
 		_first_stack_trace = tmp;
 	}
     _last_stack_trace = NULL;
-    if (_beginning_info) {
-    	free((void *)_beginning_info);
-        _beginning_info = NULL;
-    }
 	if (_ending_info) {
 		free((void *)_ending_info);
 		_ending_info = NULL;
-	}
-    if (_url) {
-    	free((void *)_url);
-        _url = NULL;
-    }
-	if (_start_date_string) {
-		free((void *)_start_date_string);
-		_start_date_string = NULL;
 	}
 }
 
 struct stack_trace *StackTraceSample::get_first_stack_trace()
 {
 	return _first_stack_trace;
-}
-
-void StackTraceSample::set_extra_beginning_info(const char *info)
-{
-	if (_beginning_info) {
-		free((void *)_beginning_info);
-	}
-	_beginning_info = sanspleur_copy_string(info);
-}
-
-const char *StackTraceSample::get_extra_beginning_info()
-{
-	return _beginning_info;
 }
 
 void StackTraceSample::set_extra_ending_info(const char *info)
@@ -141,21 +117,6 @@ void StackTraceSample::set_extra_ending_info(const char *info)
 const char *StackTraceSample::get_extra_ending_info()
 {
 	return _ending_info;
-}
-
-const char *StackTraceSample::get_start_date_string()
-{
-	return _start_date_string;
-}
-
-int StackTraceSample::get_interval()
-{
-	return _interval;
-}
-
-const char* StackTraceSample::get_url()
-{
-	return _url;
 }
 
 void StackTraceSample::thread_called()
@@ -183,4 +144,9 @@ void StackTraceSample::set_total_tick_count(int count)
 int StackTraceSample::get_total_tick_count()
 {
 	return _total_tick_count;
+}
+
+const InfoHeader *StackTraceSample::get_info_header()
+{
+	return _info_header;
 }

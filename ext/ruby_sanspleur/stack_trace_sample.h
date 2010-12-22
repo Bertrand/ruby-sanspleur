@@ -9,6 +9,8 @@
 
 #include "sampler.h"
 
+class InfoHeader;
+
 struct stack_line;
 struct stack_line {
 	int line_number;
@@ -37,27 +39,21 @@ class StackTraceSample {
 		int _thread_called_count;
 		int _stack_trace_count;
 		int _total_tick_count;
-		const char *_beginning_info;
 		const char *_ending_info;
-		const char *_url;
-		const char *_start_date_string;
-		int _interval;
+		const InfoHeader *_info_header;
 	
 	public:
 		static const char *current_date_string();
 		
-		StackTraceSample(int interval, const char *url);
+		StackTraceSample(const InfoHeader *info_header);
 		~StackTraceSample();
 		
+		const InfoHeader *get_info_header();
 		void thread_called();
-		void set_extra_beginning_info(const char *info);
-		const char* get_extra_beginning_info();
 		void set_extra_ending_info(const char *info);
 		const char *get_extra_ending_info();
 		const char *get_start_date_string();
-		int get_interval();
 		struct stack_trace *get_first_stack_trace();
-		const char* get_url();
 		void set_total_tick_count(int count);
 		int get_total_tick_count();
 		

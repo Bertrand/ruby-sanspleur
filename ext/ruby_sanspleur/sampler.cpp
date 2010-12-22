@@ -17,6 +17,7 @@
 #include "thread_ticker.h"
 #include "signal_ticker.h"
 #include "st.h"
+#include "info_header.h"
 
 #define STRING_BUFFER_SIZE 1024
 
@@ -50,7 +51,6 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, VALUE data, VALU
 static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALUE self, ID mid, VALUE klass)
 #endif
 {
-return;
 	double sample_duration = 0;
     
 	if (thread_to_sample == rb_curr_thread && sample) {
@@ -200,7 +200,9 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 	int count = 0;
 	const char *url_string = NULL;
 	const char *extra_info_string = NULL;
-	int usleep_int;
+	int usleep_int = NUM2INT(usleep_value);
+	InfoHeader *info_header;
+	const char *start_date;
 	
 	if (url && url != Qnil) {
 		url_string = StringValueCStr(url);
@@ -219,28 +221,28 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 		delete dumper;
 		dumper = NULL;
 	}
-	if (ticker) {
-		ticker->stop();
-		ticker = NULL;
-	}
-	usleep_int = NUM2INT(usleep_value);
+	start_date = StackTraceSample::current_date_string();
+	info_header = new InfoHeader(url_string, usleep_int, start_date, extra_info_string);
+	free((void *)start_date);
+	
 	if (file_name != Qnil) {
-		const char *start_date;
-		
-		start_date = StackTraceSample::current_date_string();
 		dumper = new DumperFile(StringValueCStr(file_name));
-		dumper->open_file_with_sample(url_string, usleep_int, start_date, extra_info_string);
-		free((void *)start_date);
+		dumper->open_file_with_header(info_header);
 		if (skip_writting) {
 			dumper->skip_writting(true);
 		}
 	} else {
-		sample = new StackTraceSample(usleep_int, url_string);
+		sample = new StackTraceSample(info_header);
 	}
 	start_sample_date = DumperFile::get_current_time();
-	ticker = new ThreadTicker(usleep_int);
-	ticker->start();
+	if (!ticker) {
+		ticker = new ThreadTicker(usleep_int);
+		ticker->start();
+	} else {
+		ticker->update_anchor();
+	}
 	sanspleur_install_sampler_hook();
+	delete info_header;
 	return Qnil;
 }
 
@@ -255,7 +257,6 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 	if (ticker) {
 		total_ticker_count = ticker->total_tick_count();
 		ticker->stop();
-		ticker = NULL;
 	}
 	
 	if (extra_info && extra_info != Qnil) {
@@ -294,7 +295,7 @@ static void write_sample_to_disk(StackTraceSample *sample, char *filename, doubl
 	DumperFile *dumper;
 	
 	dumper = new DumperFile(filename);
-	dumper->open_file_with_sample(sample->get_url(), sample->get_interval(), sample->get_start_date_string(), sample->get_extra_beginning_info());
+	dumper->open_file_with_header(sample->get_info_header());
 	dumper->write_stack_trace_sample(sample);
 	dumper->close_file_with_info(duration, sample->get_total_tick_count(), sample->get_extra_ending_info());
 	delete dumper;
