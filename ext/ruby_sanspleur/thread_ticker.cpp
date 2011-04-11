@@ -18,6 +18,12 @@ static void *thread_function(void *instance)
 {
 	void *result = NULL;
 	
+	// 
+	// This might require setting CAP_SYS_NICE on process.
+	// see http://linux.die.net/man/7/capabilities
+	// -- ber 
+	pthread_setschedparam(pthread_self(), SCHED_FIFO, NULL);
+	
 	result = ((ThreadTicker *)instance)->_thread_action();
 	pthread_exit(result);
 	return result;
