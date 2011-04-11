@@ -31,8 +31,8 @@ static void *thread_function(void *instance)
 
 ThreadTicker::ThreadTicker(int usleep_value)
 {
-	_thread_time = sanspleur_get_current_time();
-	_anchor_time = _thread_time;
+	_thread_time = 0;
+	_anchor_time = 0;
 	_usleep_value = usleep_value;
 	_thread_running = 0;
 	_tick_count = 0;
@@ -77,7 +77,7 @@ void ThreadTicker::start()
 
 void ThreadTicker::stop()
 {
-//	_thread_running = 0;
+	_thread_running = 0;
 	_total_tick_count = 0;
 	_thread_time = 0;
 }
@@ -86,7 +86,6 @@ void *ThreadTicker::_thread_action()
 {
 	while (_thread_running) {
 		usleep(_usleep_value);
-//		_thread_time = sanspleur_get_current_time();
 		_thread_time += _usleep_value;
 		_total_tick_count++;
 	}

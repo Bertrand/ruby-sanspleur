@@ -196,6 +196,7 @@ VALUE sanspleur_set_current_thread_to_sample(VALUE self)
 
 VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE extra_info)
 {
+	fprintf(stderr, "Sampler: starting sampling session\n");
 	struct FRAME *test = ruby_frame;
 	int count = 0;
 	const char *url_string = NULL;
@@ -250,13 +251,17 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 {
 	const char *extra_info_string = NULL;
 	struct FRAME *test = ruby_frame;
-	long long total_ticker_count;
+	long long total_ticker_count = 0;
+	double total_sampling_time = 0; 
+	
 	int count = 0;
 	
 	sanspleur_remove_sampler_hook();
 	if (ticker) {
 		total_ticker_count = ticker->total_tick_count();
+		total_sampling_time = DumperFile::get_current_time() - start_sample_date;
 		ticker->stop();
+		ticker = NULL;
 	}
 	
 	if (extra_info && extra_info != Qnil) {
@@ -267,11 +272,13 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 		sample->set_extra_ending_info(extra_info_string);
 	}
 	if (dumper) {
-		dumper->close_file_with_info(DumperFile::get_current_time() - start_sample_date, total_ticker_count, extra_info_string);
+		dumper->close_file_with_info(total_sampling_time, total_ticker_count, extra_info_string);
 		delete dumper;
 		dumper = NULL;
 	}
 	skip_writting = 0;
+	
+	fprintf(stderr, "Sampler: stoping sampling session\nTotal time: %lf\nTotal ticks:%lld\n", total_sampling_time, total_ticker_count);
 	
 	DEBUG_PRINTF("thread called %d, stack trace %d\n", sample.thread_called_count, sample.stack_trace_record_count);
 	return Qnil;
