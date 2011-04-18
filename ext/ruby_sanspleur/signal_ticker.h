@@ -2,7 +2,6 @@
  *  signal_ticker.h
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 13/10/10.
  *  Copyright 2010 Fotonauts. All rights reserved.
  *
  */
@@ -22,12 +21,14 @@ class SignalTicker : public GenericTicker {
 	public:
 		SignalTicker(int usleep_value);
 		
-		double anchor_difference();
-		void update_anchor();
-		double anchor_value();
-		long long anchor_tick_value();
+		double time_since_anchor();
+		void sync_anchor();
+		long long ticks_since_anchor();
 		long long total_tick_count();
 		
 		void start();
 		void stop();
+		void pause();
+		void resume();
+		void reset();
 };

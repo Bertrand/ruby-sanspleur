@@ -57,7 +57,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		sample->thread_called();
 	}
 	if (thread_to_sample == rb_curr_thread && ticker) {
-		sample_duration = ticker->anchor_difference();
+		sample_duration = ticker->time_since_anchor();
 	}
 	if (sample_duration != 0) {
 		struct FRAME *frame = ruby_frame;
@@ -66,7 +66,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		
 		new_trace = (struct stack_trace *)calloc(1, sizeof(*new_trace));
         new_trace->sample_duration = sample_duration;
-		new_trace->sample_tick_count = ticker->anchor_tick_value();
+		new_trace->sample_tick_count = ticker->ticks_since_anchor();
 		new_trace->ruby_event = event;
 		new_trace->call_method = sanspleur_copy_string(rb_id2name(mid));
 		
@@ -129,7 +129,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 		if (dumper) {
 			dumper->write_stack_trace(new_trace);
 		}
-		ticker->update_anchor();
+		ticker->sync_anchor();
 	}
 }
 
@@ -240,7 +240,8 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 		ticker = new ThreadTicker(usleep_int);
 		ticker->start();
 	} else {
-		ticker->update_anchor();
+		ticker->reset();
+		ticker->resume();
 	}
 	sanspleur_install_sampler_hook();
 	delete info_header;
@@ -260,8 +261,7 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 	if (ticker) {
 		total_ticker_count = ticker->total_tick_count();
 		total_sampling_time = DumperFile::get_current_time() - start_sample_date;
-		ticker->stop();
-		ticker = NULL;
+		ticker->pause();
 	}
 	
 	if (extra_info && extra_info != Qnil) {

@@ -2,7 +2,6 @@
  *  signal_ticker.c
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 13/10/10.
  *  Copyright 2010 Fotonauts. All rights reserved.
  *
  */
@@ -41,23 +40,18 @@ SignalTicker::~SignalTicker()
 {
 }
 
-double SignalTicker::anchor_difference()
+double SignalTicker::time_since_anchor()
 {
 	return global_thread_time - _anchor_time;
 }
 
-void SignalTicker::update_anchor()
+void SignalTicker::sync_anchor()
 {
 	_anchor_time = global_thread_time;
 	_tick_count = global_tick_count;
 }
 
-double SignalTicker::anchor_value()
-{
-	return _anchor_time;
-}
-
-long long SignalTicker::anchor_tick_value()
+long long SignalTicker::ticks_since_anchor()
 {
 	return global_tick_count - _tick_count;
 }
@@ -106,4 +100,19 @@ void SignalTicker::stop()
 	memset (&sa, 0, sizeof (sa));
 	sa.sa_handler = NULL;
 	sigaction (SIGALRM, &sa, NULL);
+}
+
+void SignalTicker::pause()
+{
+
+}
+
+void SignalTicker::resume()
+{
+
+}
+
+void SignalTicker::reset()
+{
+
 }
