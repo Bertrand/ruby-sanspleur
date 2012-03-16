@@ -1,3 +1,5 @@
+require 'rubygems'
+require 'rake'
 require 'date'
 
 # ------- Version ----
