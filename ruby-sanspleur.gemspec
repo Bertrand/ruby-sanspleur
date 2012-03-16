@@ -1,7 +1,3 @@
-require 'rubygems'
-require 'rake/gempackagetask'
-require 'rake/rdoctask'
-require 'rake/testtask'
 require 'date'
 
 # ------- Version ----
