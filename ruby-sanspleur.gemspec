@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'rake'
 require 'date'
 
 # ------- Version ----
@@ -11,18 +10,17 @@ RUBY_SANSPLEUR_VERSION = match[1]
 
 
 # ------- Default Package ----------
-FILES = FileList[
+FILES = [
   'Rakefile',
   'README.rdoc',
   'LICENSE',
-  'CHANGES',
-  'bin/*',
-  'ext/ruby_sanspleur/*.c',
-  'ext/ruby_sanspleur/*.cpp',
-  'ext/ruby_sanspleur/*.h',
-  'lib/**/*',
-  'rails/**/*',
-]
+  'CHANGES']+Dir["{bin}/*"] +
+  Dir['{ext/ruby_sanspleur}/*.c'] +
+  Dir['{ext/ruby_sanspleur}/*.cpp'] +
+  Dir['{ext/ruby_sanspleur}/*.h'] +
+  Dir['{lib}/**/*'] +
+  Dir['{rails}/**/*']
+
 
 # Default GEM Specification
 default_spec = Gem::Specification.new do |spec|
