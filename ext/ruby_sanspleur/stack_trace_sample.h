@@ -1,9 +1,7 @@
 /*
- *  stack_trace_sample.h
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 02/11/10.
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 
@@ -11,19 +9,19 @@
 
 class InfoHeader;
 
-struct stack_line;
-struct stack_line {
-	int line_number;
-	const char *file_name;
-	const char *function_name;
-	const char *class_name;
-	struct stack_line *next_stack_line;
-	ID function_id;
-};
+class StackLine {
+	public:
+		int line_number;
+		const char *file_name;
+		const char *function_name;
+		const char *class_name;
+		StackLine *next_stack_line;
+		ID function_id;
+} ; 
 
 struct stack_trace;
 struct stack_trace {
-	struct stack_line *stack_line;
+	StackLine *stack_line;
 	struct stack_trace *next_stack_trace;
     double sample_duration;
 	int sample_tick_count;

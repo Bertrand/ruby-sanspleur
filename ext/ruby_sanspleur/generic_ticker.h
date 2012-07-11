@@ -1,9 +1,7 @@
 /*
- *  generic_ticker.h
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 30/11/10.
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 

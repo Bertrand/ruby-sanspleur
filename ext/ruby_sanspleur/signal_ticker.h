@@ -1,8 +1,7 @@
 /*
- *  signal_ticker.h
  *  ruby-sanspleur
  *
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 

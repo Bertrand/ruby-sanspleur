@@ -1,9 +1,7 @@
 /*
- *  info_header.h
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 22/12/10.
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 
@@ -22,7 +20,7 @@ class InfoHeader
 		InfoHeader *copy() const;
 		
 		const char *get_url_string() const;
-		const int get_usleep_int() const;
+		int get_usleep_int() const;
 		const char *get_start_date() const;
 		const char *get_extra_info_string() const;
 };

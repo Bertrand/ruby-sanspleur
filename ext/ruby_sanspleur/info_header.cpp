@@ -1,9 +1,7 @@
 /*
- *  info_header.cpp
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 22/12/10.
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 
@@ -41,7 +39,7 @@ const char *InfoHeader::get_url_string() const
 	return _url_string;
 }
 
-const int InfoHeader::get_usleep_int() const
+int InfoHeader::get_usleep_int() const
 {
 	return _usleep_int;
 }

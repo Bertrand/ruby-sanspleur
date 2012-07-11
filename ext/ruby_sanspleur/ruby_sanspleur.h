@@ -1,4 +1,10 @@
-
+/*
+ *  ruby-sanspleur
+ *
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
+ *
+ */
+ 
 #ifndef RUBY_SANSPLEUR_H
 #define RUBY_SANSPLEUR_H
 
@@ -6,12 +12,13 @@
 
 #include <ruby.h>
 
-#ifndef RUBY_VM
+#ifdef RUBY_VM /* ruby 1.9 and above */
+
+#else /* ruby 1.8 */
+
 #include <node.h>
-#include <st.h>
 typedef rb_event_t rb_event_flag_t;
-#define rb_sourcefile() (node ? node->nd_file : 0)
-#define rb_sourceline() (node ? nd_line(node) : 0)
+
 #endif
 
 #include "version.h"

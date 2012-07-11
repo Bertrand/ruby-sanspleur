@@ -1,9 +1,7 @@
 /*
- *  stack_trace_sample.cpp
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 02/11/10.
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 
@@ -11,10 +9,10 @@
 #include "info_header.h"
 #include <time.h>
 
-static void empty_stack_line(struct stack_line *line)
+static void empty_stack_line(StackLine *line)
 {
 	while (line) {
-		struct stack_line *tmp;
+		StackLine *tmp;
 		
 #if COPY_RUBY_STRING
 		if (line->function_name) {
@@ -30,7 +28,7 @@ static void empty_stack_line(struct stack_line *line)
 	}
 }
 
-static void print_stack_line(struct stack_line *line, char *line_prefix, int depth)
+static void print_stack_line(StackLine *line, char *line_prefix, int depth)
 {
 	for (; depth > 0; depth--) {
 		DEBUG_PRINTF("\t");
@@ -44,7 +42,7 @@ static void print_stack_line(struct stack_line *line, char *line_prefix, int dep
 static void print_stack_trace(struct stack_trace *trace)
 {
 	while (trace) {
-		struct stack_line *line;
+		StackLine *line;
 		int depth = 0;
 		
 		line = trace->stack_line;

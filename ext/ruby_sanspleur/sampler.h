@@ -1,9 +1,7 @@
 /*
- *  sampler.h
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 15/10/10.
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 
@@ -17,8 +15,13 @@ extern "C" {
 #endif
 
 #include <ruby.h>
+
+#ifdef RUBY_VM /* ruby 1.9 and above */
+#else /* ruby 1.8*/
 #include <env.h>
 #include <node.h>
+#endif
+
 
 	VALUE sanspleur_set_current_thread_to_sample(VALUE self);
 	VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE extra_info);

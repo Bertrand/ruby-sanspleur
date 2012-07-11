@@ -1,4 +1,10 @@
-
+/*
+ *  ruby-sanspleur
+ *
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
+ *
+ */
+ 
 #include "ruby_sanspleur.h"
 #include <stdio.h>
 #include <assert.h>

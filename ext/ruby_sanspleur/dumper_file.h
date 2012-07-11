@@ -1,9 +1,7 @@
 /*
- *  dumper_file.h
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 02/11/10.
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 #include <stdio.h>
@@ -11,7 +9,7 @@
 
 class StackTraceSample;
 class InfoHeader;
-
+class StackLine;
 #define USE_FOPEN
 
 class DumperFile
@@ -28,7 +26,7 @@ class DumperFile
 		bool _skip_writting;
 	
 		void write_info_header(const InfoHeader *header);
-		void write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace, const char *suffix);
+		void write_stack_line_in_file(StackLine *line, struct stack_trace *trace, const char *suffix);
 		int write_string_in_file(const char *string, ...);
 		int write_integer_in_file(int integer);
 		int write_pointer_in_file(const void *pointer);

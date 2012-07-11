@@ -1,9 +1,7 @@
 /*
- *  dumper_file.cpp
  *  ruby-sanspleur
  *
- *  Created by Jérôme Lebel on 02/11/10.
- *  Copyright 2010 Fotonauts. All rights reserved.
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
  *
  */
 
@@ -122,7 +120,7 @@ void DumperFile::write_stack_trace_sample(StackTraceSample* sample)
 void DumperFile::write_stack_trace(struct stack_trace *trace)
 {
 	if (_file) {
-		struct stack_line *line;
+		StackLine *line;
 		int depth = 0;
 
 		line = trace->stack_line;
@@ -134,7 +132,7 @@ void DumperFile::write_stack_trace(struct stack_trace *trace)
 	}
 }
 
-void DumperFile::write_stack_line_in_file(struct stack_line *line, struct stack_trace *trace, const char *suffix)
+void DumperFile::write_stack_line_in_file(StackLine *line, struct stack_trace *trace, const char *suffix)
 {
 	if (_skip_writting) {
 		return;

@@ -1,3 +1,10 @@
+/*
+ *  ruby-sanspleur
+ *
+ *  Copyright 2010-2012 Fotonauts. All rights reserved.
+ *
+ */
+
 #include <signal.h> 
 #include <stdio.h> 
 #include <string.h> 
@@ -48,7 +55,6 @@ void set_timer (int signal)
 {
   struct itimerval timer, previous_timer;
   
- start_thread();
  enable_timer();
   /* Install timer_handler as the signal handler for SIGPROF.  */ 
   memset (&sa, 0, sizeof (sa)); 
