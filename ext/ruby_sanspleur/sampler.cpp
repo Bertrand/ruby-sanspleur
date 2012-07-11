@@ -20,6 +20,11 @@
 #ifdef RUBY_VM /* ruby 1.9 and above */
 
 #include <ruby/st.h>
+#include <ruby/intern.h>
+
+#define THREAD_TYPE VALUE
+#define CURRENT_THREAD (rb_thread_current())
+#define MAIN_THREAD (rb_thread_main())
 
 #else /* ruby 1.8*/
 
@@ -31,6 +36,10 @@
     rb_thread_t rb_main_thread;
 }
 
+#define THREAD_TYPE rb_thread_t
+#define CURRENT_THREAD (rb_curr_thread)
+#define MAIN_THREAD (rb_main_thread)
+
 #endif /* RUBY_VM */
 
 
@@ -38,7 +47,7 @@
 #define STRING_BUFFER_SIZE 1024
 
 
-static rb_thread_t thread_to_sample = NULL;
+static THREAD_TYPE thread_to_sample = NULL;
 
 static GenericTicker *ticker = NULL;
 static StackTraceSample *sample = NULL;
@@ -58,6 +67,116 @@ void sanspleur_init()
 
 typedef void sanspleur_backtrace_iter_func(void *, const char* /* filename */, int /* line number */, const char* /* function name */, ID /* function id */, const char* /* class name */, ID /* class id */);
 
+
+#ifdef RUBY_VM /* ruby 1.9 and above */
+
+typedef enum {
+    NOEX_PUBLIC    = 0x00,
+    NOEX_NOSUPER   = 0x01,
+    NOEX_PRIVATE   = 0x02,
+    NOEX_PROTECTED = 0x04,
+    NOEX_MASK      = 0x06,
+    NOEX_BASIC     = 0x08,
+    NOEX_UNDEF     = NOEX_NOSUPER,
+    NOEX_MODFUNC   = 0x12,
+    NOEX_SUPER     = 0x20,
+    NOEX_VCALL     = 0x40,
+    NOEX_RESPONDS  = 0x80
+} rb_method_flag_t;
+
+typedef enum {
+    VM_METHOD_TYPE_ISEQ,
+    VM_METHOD_TYPE_CFUNC,
+    VM_METHOD_TYPE_ATTRSET,
+    VM_METHOD_TYPE_IVAR,
+    VM_METHOD_TYPE_BMETHOD,
+    VM_METHOD_TYPE_ZSUPER,
+    VM_METHOD_TYPE_UNDEF,
+    VM_METHOD_TYPE_NOTIMPLEMENTED,
+    VM_METHOD_TYPE_OPTIMIZED, /* Kernel#send, Proc#call, etc */
+    VM_METHOD_TYPE_MISSING   /* wrapper for method_missing(id) */
+} rb_method_type_t;
+
+typedef struct rb_method_definition_struct {
+    rb_method_type_t type; /* method type */
+    ID original_id;
+} rb_method_definition_t;
+
+typedef struct rb_method_entry_struct {
+    rb_method_flag_t flag;
+    char mark;
+    rb_method_definition_t *def;
+    ID called_id;
+    VALUE klass;                    /* should be mark */
+} rb_method_entry_t;
+
+typedef struct {
+    VALUE *pc;          /* cfp[0] */
+    VALUE *sp;          /* cfp[1] */
+    VALUE *bp;          /* cfp[2] */
+    void /*rb_iseq_t*/ *iseq;        /* cfp[3] */
+    VALUE flag;         /* cfp[4] */
+    VALUE self;         /* cfp[5] / block[0] */
+    VALUE *lfp;         /* cfp[6] / block[1] */
+    VALUE *dfp;         /* cfp[7] / block[2] */
+    void /*rb_iseq_t*/ *block_iseq;  /* cfp[8] / block[3] */
+    VALUE proc;         /* cfp[9] / block[4] */
+    const rb_method_entry_t *me;/* cfp[10] */
+} rb_control_frame_t;
+
+
+typedef struct rb_thread_struct {
+    VALUE self;
+    void /*rb_vm_t*/ *vm;
+
+    VALUE *stack;       
+    unsigned long stack_size;
+    rb_control_frame_t *cfp;
+} rb_thread_t;
+
+//extern "C" {
+     extern rb_thread_t *ruby_current_thread;
+//}
+
+static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
+{
+    ID function_id = 0; 
+    VALUE klass = NULL;
+
+    //fprintf(stderr, "in current_thread : %p\n", (void*)ruby_current_threadd);
+    
+    fprintf(stderr, "in current_thread : %p %p\n", (void*)rb_thread_current(), ruby_current_thread);
+return; 
+
+    // rb_control_frame_t *cfp = ruby_current_threadd->cfp;
+    // void /*rb_iseq_t*/ *iseq = cfp->iseq;
+    // if (!iseq && cfp->me) {
+    //     function_id = cfp->me->def->original_id;
+    //     klass = cfp->me->klass;
+
+    //     fprintf(stderr, "in _stacktrace_each, function_id : %p\n", (void*)function_id);
+    // }
+
+
+    // while (iseq) {
+    // if (RUBY_VM_IFUNC_P(iseq)) {
+    //     if (idp) CONST_ID(*idp, "<ifunc>");
+    //     if (klassp) *klassp = 0;
+    //     return;
+    // }
+    // if (iseq->defined_method_id) {
+    //     if (idp) *idp = iseq->defined_method_id;
+    //     if (klassp) *klassp = iseq->klass;
+    //     return;
+    // }
+    // if (iseq->local_iseq == iseq) {
+    //     break;
+    // }
+    // iseq = iseq->parent_iseq;
+    // }
+}
+
+#else /* ruby 1.8 */
 
 static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
 {
@@ -86,11 +205,13 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
     }
 }
 
+
+#endif /* ruby 1.8 */
+
 #define safe_string(__s__) (__s__ ? __s__ : "")
 
 static void add_line_to_trace(void* anonymous_trace, const char* file_name, int line_number, const char* function_name, ID function_id, const char* class_name, ID class_id)
 {
-    fprintf(stderr, "in add_line_to_trace\n");
     fprintf(stderr, "New backtrace line : %s:%d %s::%s\n", safe_string(file_name), line_number, safe_string(class_name), safe_string(function_name));
 
     struct stack_trace *trace = (struct stack_trace*)anonymous_trace;
@@ -102,17 +223,17 @@ static void add_line_to_trace(void* anonymous_trace, const char* file_name, int 
     new_line->line_number = line_number;
     new_line->function_id = function_id;
 
-    if (!st_lookup(file_name_table, (st_data_t)file_name, (st_data_t *)&new_line->file_name)) {
+    if (file_name && !st_lookup(file_name_table, (st_data_t)file_name, (st_data_t *)&new_line->file_name)) {
         file_name = sanspleur_copy_string(file_name);
         st_insert(file_name_table, (st_data_t)file_name, (st_data_t)file_name);
         new_line->file_name = file_name;
     }
-    if (!st_lookup(function_name_table, (st_data_t)function_name, (st_data_t *)&new_line->function_name)) {
+    if (function_name && !st_lookup(function_name_table, (st_data_t)function_name, (st_data_t *)&new_line->function_name)) {
         function_name = sanspleur_copy_string(function_name);
         st_insert(function_name_table, (st_data_t)function_name, (st_data_t)function_name);
         new_line->function_name = function_name;
     }
-    if (!st_lookup(class_name_table, (st_data_t)class_name, (st_data_t *)&new_line->class_name)) {
+    if (class_name && !st_lookup(class_name_table, (st_data_t)class_name, (st_data_t *)&new_line->class_name)) {
         class_name = sanspleur_copy_string(class_name);
         st_insert(class_name_table, (st_data_t)class_name, (st_data_t)class_name);
         new_line->class_name = function_name;
@@ -127,15 +248,13 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 {
     double sample_duration = 0;
     
-    if (thread_to_sample == rb_curr_thread && sample) {
+    if (thread_to_sample == CURRENT_THREAD && sample) {
         sample->thread_called();
     }
-    if (thread_to_sample == rb_curr_thread && ticker) {
+    if (thread_to_sample == CURRENT_THREAD && ticker) {
         sample_duration = ticker->time_since_anchor();
     }
     if (sample_duration != 0) {
-        struct FRAME *frame = ruby_frame;
-        NODE *n;
         struct stack_trace *new_trace;
         
         new_trace = (struct stack_trace *)calloc(1, sizeof(*new_trace));
@@ -143,7 +262,6 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
         new_trace->sample_tick_count = ticker->ticks_since_anchor();
         new_trace->ruby_event = event;
         new_trace->call_method = sanspleur_copy_string(rb_id2name(mid));
-        fprintf(stderr, "in sanspleur_sampler_event_hook\n");
 
         _stacktrace_each(add_line_to_trace, (void*)new_trace); 
 
@@ -214,14 +332,13 @@ double sanspleur_get_current_time()
 
 VALUE sanspleur_set_current_thread_to_sample(VALUE self)
 {
-    thread_to_sample = rb_curr_thread;
+    thread_to_sample = CURRENT_THREAD;
     return Qnil;
 }
 
 VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE extra_info)
 {
     fprintf(stderr, "Sampler: starting sampling session\n");
-    struct FRAME *test = ruby_frame;
     int count = 0;
     const char *url_string = NULL;
     const char *extra_info_string = NULL;
@@ -236,7 +353,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
         extra_info_string = StringValueCStr(extra_info);
     }
     if (!thread_to_sample) {
-        thread_to_sample = rb_curr_thread;
+        thread_to_sample = CURRENT_THREAD;
     }
     if (sample) {
         delete sample;
@@ -275,7 +392,6 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
 VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
 {
     const char *extra_info_string = NULL;
-    struct FRAME *test = ruby_frame;
     long long total_ticker_count = 0;
     double total_sampling_time = 0; 
     
