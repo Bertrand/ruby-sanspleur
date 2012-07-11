@@ -67,9 +67,76 @@ void sanspleur_init()
 
 typedef void sanspleur_backtrace_iter_func(void *, const char* /* filename */, int /* line number */, const char* /* function name */, ID /* function id */, const char* /* class name */, ID /* class id */);
 
+#define safe_string(__s__) (__s__ ? __s__ : "")
 
 #ifdef RUBY_VM /* ruby 1.9 and above */
 
+
+struct rb_iseq_struct;
+
+struct rb_iseq_struct {
+
+    enum iseq_type {
+    ISEQ_TYPE_TOP,
+    ISEQ_TYPE_METHOD,
+    ISEQ_TYPE_BLOCK,
+    ISEQ_TYPE_CLASS,
+    ISEQ_TYPE_RESCUE,
+    ISEQ_TYPE_ENSURE,
+    ISEQ_TYPE_EVAL,
+    ISEQ_TYPE_MAIN,
+    ISEQ_TYPE_DEFINED_GUARD
+    } type;              /* instruction sequence type */
+
+    VALUE name;          /* String: iseq name */
+    VALUE filename;      /* file information where this sequence from */
+    VALUE filepath;      /* real file path or nil */
+    VALUE *iseq;         /* iseq (insn number and operands) */
+    VALUE *iseq_encoded; /* encoded iseq */
+    unsigned long iseq_size;
+    VALUE mark_ary; /* Array: includes operands which should be GC marked */
+    VALUE coverage;     /* coverage array */
+    unsigned short line_no;
+
+    void *insn_info_table;
+    size_t insn_info_size;
+
+    ID *local_table;
+    int local_table_size;
+
+    int local_size;
+
+    void *ic_entries;
+    int ic_size;
+
+    int argc;
+    int arg_simple;
+    int arg_rest;
+    int arg_block;
+    int arg_opts;
+    int arg_post_len;
+    int arg_post_start;
+    int arg_size;
+    VALUE *arg_opt_table;
+
+    size_t stack_max; 
+
+    void *catch_table;
+    int catch_table_size;
+
+    struct rb_iseq_struct *parent_iseq;
+    struct rb_iseq_struct *local_iseq;
+
+    VALUE self;
+    VALUE orig;        
+
+    void *cref_stack;
+    VALUE klass;
+
+    ID defined_method_id;
+};
+
+typedef struct rb_iseq_struct rb_iseq_t;
 typedef enum {
     NOEX_PUBLIC    = 0x00,
     NOEX_NOSUPER   = 0x01,
@@ -114,12 +181,12 @@ typedef struct {
     VALUE *pc;          /* cfp[0] */
     VALUE *sp;          /* cfp[1] */
     VALUE *bp;          /* cfp[2] */
-    void /*rb_iseq_t*/ *iseq;        /* cfp[3] */
+    rb_iseq_t *iseq;        /* cfp[3] */
     VALUE flag;         /* cfp[4] */
     VALUE self;         /* cfp[5] / block[0] */
     VALUE *lfp;         /* cfp[6] / block[1] */
     VALUE *dfp;         /* cfp[7] / block[2] */
-    void /*rb_iseq_t*/ *block_iseq;  /* cfp[8] / block[3] */
+    rb_iseq_t *block_iseq;  /* cfp[8] / block[3] */
     VALUE proc;         /* cfp[9] / block[4] */
     const rb_method_entry_t *me;/* cfp[10] */
 } rb_control_frame_t;
@@ -134,46 +201,76 @@ typedef struct rb_thread_struct {
     rb_control_frame_t *cfp;
 } rb_thread_t;
 
-//extern "C" {
-     extern rb_thread_t *ruby_current_thread;
-//}
+//extern int rb_vm_get_sourceline(const rb_control_frame_t *cfp);
+
+
+#define RUBY_VM_IFUNC_P(ptr)        (BUILTIN_TYPE(ptr) == T_NODE)
+
 
 static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
 {
-    ID function_id = 0; 
-    VALUE klass = NULL;
 
-    //fprintf(stderr, "in current_thread : %p\n", (void*)ruby_current_threadd);
-    
-    fprintf(stderr, "in current_thread : %p %p\n", (void*)rb_thread_current(), ruby_current_thread);
-return; 
+    rb_thread_t* ruby_current_thread = (rb_thread_t*)(DATA_PTR(rb_thread_current()));
+    rb_control_frame_t *cfp = ruby_current_thread->cfp;
 
-    // rb_control_frame_t *cfp = ruby_current_threadd->cfp;
-    // void /*rb_iseq_t*/ *iseq = cfp->iseq;
-    // if (!iseq && cfp->me) {
-    //     function_id = cfp->me->def->original_id;
-    //     klass = cfp->me->klass;
+    const rb_control_frame_t *cfp_limit = (rb_control_frame_t*)(ruby_current_thread->stack + ruby_current_thread->stack_size);
+    cfp_limit -= 2;
+   
+    while (cfp < cfp_limit) {
+        ID function_id = 0; 
+        VALUE klass = NULL;
+        const char* file_name = NULL; 
 
-    //     fprintf(stderr, "in _stacktrace_each, function_id : %p\n", (void*)function_id);
-    // }
+        rb_iseq_t *iseq = cfp->iseq;
+        if (!iseq && cfp->me) {
+            //fprintf(stderr, "no iseq\n");
+            function_id = cfp->me->def->original_id;
+            klass = cfp->me->klass;
+        }
 
+        while (iseq) {
+            if (RUBY_VM_IFUNC_P(iseq)) {
+                //fprintf(stderr, "<ifunc>\n");
+                CONST_ID(function_id, "<ifunc>");
+                klass = NULL;
+                break;
+            }
+            if (iseq->defined_method_id) {
+                //fprintf(stderr, "defined_method_id\n");
 
-    // while (iseq) {
-    // if (RUBY_VM_IFUNC_P(iseq)) {
-    //     if (idp) CONST_ID(*idp, "<ifunc>");
-    //     if (klassp) *klassp = 0;
-    //     return;
-    // }
-    // if (iseq->defined_method_id) {
-    //     if (idp) *idp = iseq->defined_method_id;
-    //     if (klassp) *klassp = iseq->klass;
-    //     return;
-    // }
-    // if (iseq->local_iseq == iseq) {
-    //     break;
-    // }
-    // iseq = iseq->parent_iseq;
-    // }
+                function_id = iseq->defined_method_id;
+                klass = iseq->klass;
+                break;
+            }
+            if (iseq->local_iseq == iseq) {
+                //fprintf(stderr, "local_iseq\n");
+                break;
+            }
+            iseq = iseq->parent_iseq;
+        }
+
+        if (iseq) {
+            file_name = RSTRING_PTR(iseq->filename);
+        }
+
+        const char* function_name = NULL;
+        if (function_id) function_name = rb_id2name(function_id); 
+
+        const char* class_name = NULL; 
+        if (klass) class_name = rb_class2name(klass); 
+
+        int line_number = 0; 
+
+        ID class_id = 0; 
+
+        iterator(arg, file_name, line_number, function_name, function_id, class_name, class_id);
+
+        //fprintf(stderr, "function_id : %p, name : %s\n", (void*)function_id, safe_string(function_name));
+        //fprintf(stderr, "class_id : %p, name : %s\n", (void*)klass, safe_string(class_name));
+        //fprintf(stderr, "file :%d", line_number);
+        cfp++;
+    }
+    fprintf(stderr, "------------\n");
 }
 
 #else /* ruby 1.8 */
@@ -182,9 +279,7 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
 {
     struct FRAME *frame = ruby_frame;
     NODE *n;
-    fprintf(stderr, "in _stacktrace_each\n");
-    fprintf(stderr, "frame : %p, node : %p\n", frame, n);
-
+ 
     for (; frame && (n = frame->node); frame = frame->prev) {
         ID          function_id = 0;
         const char* function_name = NULL;
@@ -208,7 +303,6 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
 
 #endif /* ruby 1.8 */
 
-#define safe_string(__s__) (__s__ ? __s__ : "")
 
 static void add_line_to_trace(void* anonymous_trace, const char* file_name, int line_number, const char* function_name, ID function_id, const char* class_name, ID class_id)
 {
