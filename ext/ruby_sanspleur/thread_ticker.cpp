@@ -34,7 +34,7 @@ static void *thread_function(void *instance)
 	return result;
 }
 
-ThreadTicker::ThreadTicker(int usleep_value)
+ThreadTicker::ThreadTicker(long usleep_value)
 {
 	_elapsed_time = 0;
 	_anchored_time = 0;
@@ -157,6 +157,8 @@ void *ThreadTicker::_thread_action()
 
 void ThreadTicker::runTicks()
 {
+	fprintf(stderr, "in runTicks\n");
+
 	bool shouldLoop = true;
 
 	struct timespec waitRequest;

@@ -30,15 +30,9 @@
 
 #include <st.h>
 
- extern "C" {
-    struct FRAME *ruby_frame;
-    rb_thread_t rb_curr_thread;
-    rb_thread_t rb_main_thread;
-}
-
 #define THREAD_TYPE rb_thread_t
-#define CURRENT_THREAD (rb_curr_thread)
-#define MAIN_THREAD (rb_main_thread)
+#define CURRENT_THREAD ((rb_thread_t)DATA_PTR(rb_thread_current()))
+#define MAIN_THREAD (DATA_PTR(rb_thread_main()))
 
 #endif /* RUBY_VM */
 
@@ -342,13 +336,24 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 {
     double sample_duration = 0;
     
+    // fprintf(stderr, "Thread to sample : %p\n", thread_to_sample);
+    // fprintf(stderr, "Current thread : %p\n", CURRENT_THREAD);
+
     if (thread_to_sample == CURRENT_THREAD && sample) {
-        sample->thread_called();
+       sample->thread_called();
     }
+
+
     if (thread_to_sample == CURRENT_THREAD && ticker) {
         sample_duration = ticker->time_since_anchor();
+        // fprintf(stderr, "Sample duration : %lf\n", sample_duration);
+
     }
+
+
     if (sample_duration != 0) {
+        fprintf(stderr, "taking sample\n");
+
         struct stack_trace *new_trace;
         
         new_trace = (struct stack_trace *)calloc(1, sizeof(*new_trace));
@@ -432,11 +437,11 @@ VALUE sanspleur_set_current_thread_to_sample(VALUE self)
 
 VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE extra_info)
 {
-    fprintf(stderr, "Sampler: starting sampling session\n");
+    //fprintf(stderr, "Sampler: starting sampling session\n");
     int count = 0;
     const char *url_string = NULL;
     const char *extra_info_string = NULL;
-    int usleep_int = NUM2INT(usleep_value);
+    long usleep_int = NUM2INT(usleep_value);
     InfoHeader *info_header;
     const char *start_date;
     
@@ -448,6 +453,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     }
     if (!thread_to_sample) {
         thread_to_sample = CURRENT_THREAD;
+        //fprintf(stderr, "Thread to sample : %p\n", thread_to_sample);
     }
     if (sample) {
         delete sample;
@@ -512,7 +518,7 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
     }
     skip_writting = 0;
     
-    fprintf(stderr, "Sampler: stoping sampling session\nTotal time: %lf\nTotal ticks:%lld\n", total_sampling_time, total_ticker_count);
+    //fprintf(stderr, "Sampler: stoping sampling session\nTotal time: %lf\nTotal ticks:%lld\n", total_sampling_time, total_ticker_count);
     
     DEBUG_PRINTF("thread called %d, stack trace %d\n", sample.thread_called_count, sample.stack_trace_record_count);
     return Qnil;
