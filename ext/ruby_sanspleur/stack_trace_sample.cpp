@@ -12,17 +12,7 @@
 static void empty_stack_line(StackLine *line)
 {
 	while (line) {
-		StackLine *tmp;
-		
-#if COPY_RUBY_STRING
-		if (line->function_name) {
-			free((void *)line->function_name);
-		}
-		if (line->file_name) {
-			free((void *)line->file_name);
-		}
-#endif
-		tmp = line->next_stack_line;
+		StackLine *tmp = line->next_stack_line;
 		free(line);
 		line = tmp;
 	}

@@ -27,7 +27,6 @@ void Init_ruby_sanspleur()
     rb_define_module_function(sanspleurModule, "start_sample", sanspleur_start_sample, 4);
     rb_define_module_function(sanspleurModule, "stop_sample", sanspleur_stop_sample, 1);
     rb_define_module_function(sanspleurModule, "sample", sanspleur_sample, 5);
-    rb_define_module_function(sanspleurModule, "skip_writting_to_debug", sanspleur_skip_writting_to_debug, 1);
     rb_define_module_function(sanspleurModule, "save_current_sample", sanspleur_save_current_sample, 2);
     rb_define_module_function(sanspleurModule, "cancel_current_sample", sanspleur_cancel_current_sample, 0);
 	

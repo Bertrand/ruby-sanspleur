@@ -63,4 +63,11 @@ task :cleanr do
 end
 
 task :clean => :cleanr
-task :package => :build
+
+
+# rubygem package_task  tasks
+spec = eval(File.read('ruby-sanspleur.gemspec'))
+Gem::PackageTask.new(spec) do |p|
+  p.gem_spec = spec
+end
+

@@ -50,7 +50,6 @@ static THREAD_TYPE thread_to_sample = NULL;
 static GenericTicker *ticker = NULL;
 static StackTraceSample *sample = NULL;
 static DumperFile *dumper = NULL;
-static int skip_writting = 0;
 static double start_sample_date = 0;
 static st_table *file_name_table = NULL;
 static st_table *function_name_table = NULL;
@@ -84,16 +83,16 @@ struct rb_iseq_struct {
     ISEQ_TYPE_EVAL,
     ISEQ_TYPE_MAIN,
     ISEQ_TYPE_DEFINED_GUARD
-    } type;              /* instruction sequence type */
+    } type;              
 
-    VALUE name;          /* String: iseq name */
-    VALUE filename;      /* file information where this sequence from */
-    VALUE filepath;      /* real file path or nil */
-    VALUE *iseq;         /* iseq (insn number and operands) */
-    VALUE *iseq_encoded; /* encoded iseq */
+    VALUE name;
+    VALUE filename;
+    VALUE filepath;
+    VALUE *iseq;
+    VALUE *iseq_encoded;
     unsigned long iseq_size;
-    VALUE mark_ary; /* Array: includes operands which should be GC marked */
-    VALUE coverage;     /* coverage array */
+    VALUE mark_ary; 
+    VALUE coverage;     
     unsigned short line_no;
 
     void *insn_info_table;
@@ -131,7 +130,7 @@ struct rb_iseq_struct {
     void *cref_stack;
     VALUE klass;
 
-    ID defined_method_id;
+    ID defined_method_id; // this is the last one we need. Don't go beyond this, we only access frames as pointers.
 };
 
 typedef struct rb_iseq_struct rb_iseq_t;
@@ -219,9 +218,15 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
     const rb_control_frame_t *cfp_limit = (rb_control_frame_t*)(ruby_current_thread->stack + ruby_current_thread->stack_size);
     cfp_limit -= 2;
    
+    // This is a temporary hack on 1.9. We compute the stacktrace while 
+    // receiving a function return event. The current frame is not the 
+    // function from which we return, but its caller. 
+    // We should rather get info about returning function in the event
+    // itself, but for the moment, let's just walk a frame back. 
+    cfp--; 
+
     while (cfp < cfp_limit) {
 
-        // fprintf(stderr, "frame type %ld\n", VM_FRAME_TYPE(cfp));
         ID function_id = 0; 
         VALUE klass = NULL;
         const char* file_name = NULL; 
@@ -230,32 +235,27 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
 
         rb_iseq_t *iseq = cfp->iseq;
         if (!iseq && cfp->me) {
-            //fprintf(stderr, "no iseq\n");
             function_id = cfp->me->def->original_id;
             klass = cfp->me->klass;
             no_pos = true;
         }
         if (cfp->me) {
-                        function_id = cfp->me->def->original_id;
+            function_id = cfp->me->def->original_id;
             klass = cfp->me->klass;
         }
 
         while (iseq) {
             if (RUBY_VM_IFUNC_P(iseq)) {
-                //fprintf(stderr, "<ifunc>\n");
                 CONST_ID(function_id, "<ifunc>");
                 klass = NULL;
                 break;
             }
             if (iseq->defined_method_id) {
-                //fprintf(stderr, "defined_method_id\n");
-
                 function_id = iseq->defined_method_id;
                 klass = iseq->klass;
                 break;
             }
             if (iseq->local_iseq == iseq) {
-                //fprintf(stderr, "local_iseq\n");
                 break;
             }
             iseq = iseq->parent_iseq;
@@ -282,7 +282,6 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
 
         cfp++;
     }
-    fprintf(stderr, "------------\n");
 }
 
 #else /* ruby 1.8 */
@@ -318,7 +317,7 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
 
 static void add_line_to_trace(void* anonymous_trace, const char* file_name, int line_number, const char* function_name, ID function_id, const char* class_name, ID class_id)
 {
-    fprintf(stderr, "New backtrace line : %s:%d %s::%s\n", safe_string(file_name), line_number, safe_string(class_name), safe_string(function_name));
+    DEBUG_PRINTF("New backtrace line : %s:%d %s::%s\n", safe_string(file_name), line_number, safe_string(class_name), safe_string(function_name));
 
     StackTrace *trace = (StackTrace*)anonymous_trace;
     StackLine *new_line = new StackLine();
@@ -353,29 +352,18 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 #endif
 {
     double sample_duration = 0;
-    
-    // fprintf(stderr, "Thread to sample : %p\n", thread_to_sample);
-    // fprintf(stderr, "Current thread : %p\n", CURRENT_THREAD);
 
     if (thread_to_sample == CURRENT_THREAD && sample) {
        sample->thread_called();
     }
 
-
     if (thread_to_sample == CURRENT_THREAD && ticker) {
         sample_duration = ticker->time_since_anchor();
-        // fprintf(stderr, "Sample duration : %lf\n", sample_duration);
-
     }
 
 
     if (sample_duration != 0) {
-        //fprintf(stderr, "taking sample\n");
-        //fprintf(stderr, "event : %d\n", event);
-
-        StackTrace *new_trace;
-        
-        new_trace = new StackTrace();
+        StackTrace *new_trace = new StackTrace();
         new_trace->sample_duration = sample_duration;
         new_trace->sample_tick_count = ticker->ticks_since_anchor();
         new_trace->ruby_event = event;
@@ -390,6 +378,8 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
             dumper->write_stack_trace(new_trace);
         }
         ticker->sync_anchor();
+        DEBUG_PRINTF("------------\n");
+
     }
 }
 
@@ -397,7 +387,7 @@ static void sanspleur_install_sampler_hook()
 {
 #ifdef RUBY_VM
     rb_add_event_hook(sanspleur_sampler_event_hook,
-        RUBY_EVENT_CALL    | RUBY_EVENT_C_CALL      |
+        // RUBY_EVENT_CALL    | RUBY_EVENT_C_CALL      |
         RUBY_EVENT_RETURN  | RUBY_EVENT_C_RETURN    |
         RUBY_EVENT_LINE, Qnil); // RUBY_EVENT_SWITCH
 #else
@@ -456,7 +446,7 @@ VALUE sanspleur_set_current_thread_to_sample(VALUE self)
 
 VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE extra_info)
 {
-    //fprintf(stderr, "Sampler: starting sampling session\n");
+    DEBUG_PRINTF("Sampler: starting sampling session\n");
     int count = 0;
     const char *url_string = NULL;
     const char *extra_info_string = NULL;
@@ -472,7 +462,7 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     }
     if (!thread_to_sample) {
         thread_to_sample = CURRENT_THREAD;
-        //fprintf(stderr, "Thread to sample : %p\n", thread_to_sample);
+        DEBUG_PRINTF("Thread to sample : %p\n", thread_to_sample);
     }
     if (sample) {
         delete sample;
@@ -489,9 +479,6 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     if (file_name != Qnil) {
         dumper = new DumperFile(StringValueCStr(file_name));
         dumper->open_file_with_header(info_header);
-        if (skip_writting) {
-            dumper->skip_writting(true);
-        }
     } else {
         sample = new StackTraceSample(info_header);
     }
@@ -536,9 +523,6 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
         delete dumper;
         dumper = NULL;
     }
-    skip_writting = 0;
-    
-    //fprintf(stderr, "Sampler: stoping sampling session\nTotal time: %lf\nTotal ticks:%lld\n", total_sampling_time, total_ticker_count);
     
     DEBUG_PRINTF("thread called %d, stack trace %d\n", sample.thread_called_count, sample.stack_trace_record_count);
     return Qnil;
@@ -618,13 +602,6 @@ VALUE sanspleur_cancel_current_sample(VALUE self)
         delete sample;
         sample = NULL;
     }
-    return Qnil;
-}
-
-VALUE sanspleur_skip_writting_to_debug(VALUE self, VALUE skip)
-{
-    skip_writting = NUM2INT(skip);
-//  skip_writting = strcmp("true", StringValueCStr(skip));
     return Qnil;
 }
 

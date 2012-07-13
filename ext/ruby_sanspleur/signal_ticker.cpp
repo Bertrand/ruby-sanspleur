@@ -7,7 +7,6 @@
 
 #include "signal_ticker.h"
 #include "sampler.h"
-#include "debug.h"
 
 #include <unistd.h>
 #include <stdlib.h>

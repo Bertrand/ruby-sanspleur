@@ -26,7 +26,6 @@ class DumperFile
 #endif
 		const char *_filename;
 		long _usleep_value;
-		bool _skip_writting;
 	
 		void write_info_header(const InfoHeader *header);
 		void write_stack_line_in_file(StackLine *line, StackTrace *trace, const char *suffix);
@@ -47,5 +46,4 @@ class DumperFile
 		void write_stack_trace_sample(StackTraceSample* sample);
 		void close_file_with_info(double duration, long long tick_count, const char *extra_info);
 		void write_stack_trace(StackTrace *trace);
-		void skip_writting(bool skip);
 };

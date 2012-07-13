@@ -40,7 +40,6 @@ DumperFile::DumperFile(const char *filename)
 {
 	_file = NULL;
 	_filename = sanspleur_copy_string(filename);
-	_skip_writting = false;
 }
 
 DumperFile::~DumperFile()
@@ -134,9 +133,6 @@ void DumperFile::write_stack_trace(StackTrace *trace)
 
 void DumperFile::write_stack_line_in_file(StackLine *line, StackTrace *trace, const char *suffix)
 {
-	if (_skip_writting) {
-		return;
-	}
 	// thread id, time, file, stack depth, type, ns, function, symbol
 	write_string_in_file(
 	"1\t" // 0: thread id
@@ -162,12 +158,6 @@ void DumperFile::write_stack_line_in_file(StackLine *line, StackTrace *trace, co
 	suffix
 	);
 }
-
-void DumperFile::skip_writting(bool skip)
-{
-	_skip_writting = skip;
-}
-
 
 int DumperFile::write_string_in_file(const char *format, ...)
 {
