@@ -39,7 +39,7 @@ static void print_stack_line(StackLine *line, char *line_prefix, int depth)
 	DEBUG_PRINTF("%s %s:%d\n", line->function_name, line->file_name, line->line_number);
 }
 
-static void print_stack_trace(struct stack_trace *trace)
+static void print_stack_trace(StackTrace *trace)
 {
 	while (trace) {
 		StackLine *line;
@@ -84,7 +84,7 @@ StackTraceSample::~StackTraceSample()
 		delete _info_header;
 	}
 	while (_first_stack_trace) {
-		struct stack_trace *tmp;
+		StackTrace *tmp;
         
 		empty_stack_line(_first_stack_trace->stack_line);
 		tmp = _first_stack_trace->next_stack_trace;
@@ -99,7 +99,7 @@ StackTraceSample::~StackTraceSample()
 	}
 }
 
-struct stack_trace *StackTraceSample::get_first_stack_trace()
+StackTrace *StackTraceSample::get_first_stack_trace()
 {
 	return _first_stack_trace;
 }
@@ -122,7 +122,7 @@ void StackTraceSample::thread_called()
 	_thread_called_count++;
 }
 
-void StackTraceSample::add_new_stack_trace(struct stack_trace *new_trace)
+void StackTraceSample::add_new_stack_trace(StackTrace *new_trace)
 {
 	if (!_first_stack_trace) {
 		_first_stack_trace = new_trace;
@@ -134,12 +134,12 @@ void StackTraceSample::add_new_stack_trace(struct stack_trace *new_trace)
 	_stack_trace_count++;
 }
 
-void StackTraceSample::set_total_tick_count(int count)
+void StackTraceSample::set_total_tick_count(long long count)
 {
 	_total_tick_count = count;
 }
 
-int StackTraceSample::get_total_tick_count()
+long long StackTraceSample::get_total_tick_count()
 {
 	return _total_tick_count;
 }

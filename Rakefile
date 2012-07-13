@@ -61,3 +61,6 @@ task :cleanr do
  end
  system("rm -rf pkg")
 end
+
+task :clean => :cleanr
+task :package => :build

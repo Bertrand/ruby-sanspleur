@@ -19,24 +19,24 @@ class StackLine {
 		ID function_id;
 } ; 
 
-struct stack_trace;
-struct stack_trace {
-	StackLine *stack_line;
-	struct stack_trace *next_stack_trace;
-    double sample_duration;
-	int sample_tick_count;
-	
-	int ruby_event;
-	const char *call_method;
+class StackTrace {
+	public:
+		StackLine *stack_line;
+		StackTrace *next_stack_trace;
+	    double sample_duration;
+		long long sample_tick_count;
+		
+		int ruby_event;
+		const char *call_method;
 };
 
 class StackTraceSample {
 	protected:
-		struct stack_trace *_first_stack_trace;
-		struct stack_trace *_last_stack_trace;
+		StackTrace *_first_stack_trace;
+		StackTrace *_last_stack_trace;
 		int _thread_called_count;
 		int _stack_trace_count;
-		int _total_tick_count;
+		long long _total_tick_count;
 		const char *_ending_info;
 		const InfoHeader *_info_header;
 	
@@ -51,9 +51,9 @@ class StackTraceSample {
 		void set_extra_ending_info(const char *info);
 		const char *get_extra_ending_info();
 		const char *get_start_date_string();
-		struct stack_trace *get_first_stack_trace();
-		void set_total_tick_count(int count);
-		int get_total_tick_count();
+		StackTrace *get_first_stack_trace();
+		void set_total_tick_count(long long count);
+		long long get_total_tick_count();
 		
-		void add_new_stack_trace(struct stack_trace *new_trace);
+		void add_new_stack_trace(StackTrace *new_trace);
 };

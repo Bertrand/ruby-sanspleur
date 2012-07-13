@@ -15,7 +15,7 @@
 #include <pthread.h>
 
 
-  static int count = 0; 
+static int count = 0; 
 static  struct sigaction sa; 
 
 static void timer_handler (int signum) 

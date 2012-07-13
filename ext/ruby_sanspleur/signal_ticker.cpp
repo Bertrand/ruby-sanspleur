@@ -7,6 +7,8 @@
 
 #include "signal_ticker.h"
 #include "sampler.h"
+#include "debug.h"
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -15,6 +17,10 @@
 #include <stdio.h> 
 #include <string.h> 
 
+
+#define SIGNAL SIGALRM
+#define ITIMER ITIMER_REAL
+ 
 
 double global_thread_time = 0;
 int global_tick_count = 0;
@@ -74,13 +80,13 @@ void SignalTicker::start()
 	memset (&sa, 0, sizeof (sa));
     sa.sa_flags = SA_RESTART;
 	sa.sa_handler = &timer_handler;
-	sigaction (SIGALRM, &sa, NULL);
+	sigaction (SIGNAL, &sa, NULL);
 
 	timer.it_value.tv_sec = 0;
 	timer.it_value.tv_usec = _usleep_value;
 	timer.it_interval.tv_sec = 0;
 	timer.it_interval.tv_usec = _usleep_value;
-	setitimer(ITIMER_REAL, &timer, NULL);
+	setitimer(ITIMER, &timer, NULL);
 }
 
 void SignalTicker::stop()
@@ -94,11 +100,11 @@ void SignalTicker::stop()
 	timer.it_value.tv_usec = 0;
 	timer.it_interval.tv_sec = 0;
 	timer.it_interval.tv_usec = 0;
-	setitimer(ITIMER_REAL, &timer, NULL);
+	setitimer(ITIMER, &timer, NULL);
 
 	memset (&sa, 0, sizeof (sa));
 	sa.sa_handler = NULL;
-	sigaction (SIGALRM, &sa, NULL);
+	sigaction (SIGNAL, &sa, NULL);
 }
 
 void SignalTicker::pause()

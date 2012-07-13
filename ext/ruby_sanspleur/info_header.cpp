@@ -8,7 +8,7 @@
 #include "info_header.h"
 #include "sampler.h"
 
-InfoHeader::InfoHeader(const char *url_string, int usleep_int, const char *start_date, const char *extra_info_string)
+InfoHeader::InfoHeader(const char *url_string, long usleep_int, const char *start_date, const char *extra_info_string)
 {
 	_url_string = sanspleur_copy_string(url_string);
 	_usleep_int = usleep_int;
@@ -39,7 +39,7 @@ const char *InfoHeader::get_url_string() const
 	return _url_string;
 }
 
-int InfoHeader::get_usleep_int() const
+long InfoHeader::get_usleep_int() const
 {
 	return _usleep_int;
 }

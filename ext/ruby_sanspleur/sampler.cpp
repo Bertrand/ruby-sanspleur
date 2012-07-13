@@ -30,10 +30,14 @@
 
 #include <st.h>
 
-#define THREAD_TYPE rb_thread_t
-#define CURRENT_THREAD ((rb_thread_t)DATA_PTR(rb_thread_current()))
-#define MAIN_THREAD (DATA_PTR(rb_thread_main()))
+// #define THREAD_TYPE rb_thread_t
+// #define CURRENT_THREAD ((rb_thread_t)DATA_PTR(rb_thread_current()))
+// #define MAIN_THREAD (DATA_PTR(rb_thread_main()))
 
+#define THREAD_TYPE VALUE
+#define CURRENT_THREAD (rb_thread_current())
+#define MAIN_THREAD (rb_thread_main())
+ 
 #endif /* RUBY_VM */
 
 
@@ -195,10 +199,15 @@ typedef struct rb_thread_struct {
     rb_control_frame_t *cfp;
 } rb_thread_t;
 
-//extern int rb_vm_get_sourceline(const rb_control_frame_t *cfp);
+extern "C" {
+    int rb_vm_get_sourceline(const rb_control_frame_t *cfp);
+}
 
 
 #define RUBY_VM_IFUNC_P(ptr)        (BUILTIN_TYPE(ptr) == T_NODE)
+#define VM_FRAME_MAGIC_MASK_BITS   8
+#define VM_FRAME_MAGIC_MASK   (~(~0<<VM_FRAME_MAGIC_MASK_BITS))
+#define VM_FRAME_TYPE(cfp) ((cfp)->flag & VM_FRAME_MAGIC_MASK)
 
 
 static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
@@ -211,14 +220,23 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
     cfp_limit -= 2;
    
     while (cfp < cfp_limit) {
+
+        // fprintf(stderr, "frame type %ld\n", VM_FRAME_TYPE(cfp));
         ID function_id = 0; 
         VALUE klass = NULL;
         const char* file_name = NULL; 
+        int line_number = -1; 
+        bool no_pos = false;
 
         rb_iseq_t *iseq = cfp->iseq;
         if (!iseq && cfp->me) {
             //fprintf(stderr, "no iseq\n");
             function_id = cfp->me->def->original_id;
+            klass = cfp->me->klass;
+            no_pos = true;
+        }
+        if (cfp->me) {
+                        function_id = cfp->me->def->original_id;
             klass = cfp->me->klass;
         }
 
@@ -253,15 +271,15 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
         const char* class_name = NULL; 
         if (klass) class_name = rb_class2name(klass); 
 
-        int line_number = 0; 
-
+        if (!no_pos) {
+            line_number = rb_vm_get_sourceline(cfp);
+        }
         ID class_id = 0; 
 
-        iterator(arg, file_name, line_number, function_name, function_id, class_name, class_id);
+        if (VM_FRAME_TYPE(cfp) != 0x51) {
+            iterator(arg, file_name, line_number, function_name, function_id, class_name, class_id);
+        }
 
-        //fprintf(stderr, "function_id : %p, name : %s\n", (void*)function_id, safe_string(function_name));
-        //fprintf(stderr, "class_id : %p, name : %s\n", (void*)klass, safe_string(class_name));
-        //fprintf(stderr, "file :%d", line_number);
         cfp++;
     }
     fprintf(stderr, "------------\n");
@@ -302,7 +320,7 @@ static void add_line_to_trace(void* anonymous_trace, const char* file_name, int 
 {
     fprintf(stderr, "New backtrace line : %s:%d %s::%s\n", safe_string(file_name), line_number, safe_string(class_name), safe_string(function_name));
 
-    struct stack_trace *trace = (struct stack_trace*)anonymous_trace;
+    StackTrace *trace = (StackTrace*)anonymous_trace;
     StackLine *new_line = new StackLine();
     
     new_line->next_stack_line = trace->stack_line;
@@ -352,11 +370,12 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 
 
     if (sample_duration != 0) {
-        fprintf(stderr, "taking sample\n");
+        //fprintf(stderr, "taking sample\n");
+        //fprintf(stderr, "event : %d\n", event);
 
-        struct stack_trace *new_trace;
+        StackTrace *new_trace;
         
-        new_trace = (struct stack_trace *)calloc(1, sizeof(*new_trace));
+        new_trace = new StackTrace();
         new_trace->sample_duration = sample_duration;
         new_trace->sample_tick_count = ticker->ticks_since_anchor();
         new_trace->ruby_event = event;
@@ -378,14 +397,14 @@ static void sanspleur_install_sampler_hook()
 {
 #ifdef RUBY_VM
     rb_add_event_hook(sanspleur_sampler_event_hook,
-          RUBY_EVENT_CALL | RUBY_EVENT_RETURN |
-          RUBY_EVENT_C_CALL | RUBY_EVENT_C_RETURN
-            | RUBY_EVENT_LINE, Qnil); // RUBY_EVENT_SWITCH
+        RUBY_EVENT_CALL    | RUBY_EVENT_C_CALL      |
+        RUBY_EVENT_RETURN  | RUBY_EVENT_C_RETURN    |
+        RUBY_EVENT_LINE, Qnil); // RUBY_EVENT_SWITCH
 #else
     rb_add_event_hook(sanspleur_sampler_event_hook,
-          RUBY_EVENT_CALL | RUBY_EVENT_RETURN |
-          RUBY_EVENT_C_CALL | RUBY_EVENT_C_RETURN
-          | RUBY_EVENT_LINE);
+        RUBY_EVENT_CALL   | RUBY_EVENT_C_CALL     |
+        RUBY_EVENT_RETURN | RUBY_EVENT_C_RETURN   | 
+        RUBY_EVENT_LINE );
 #endif
 
 #if defined(TOGGLE_GC_STATS)
@@ -407,7 +426,7 @@ extern "C" {
 
 char *sanspleur_copy_string(const char *string)
 {
-    int length;
+    long length;
     char *result = NULL;
     
     if (string) {
@@ -478,7 +497,8 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     }
     start_sample_date = DumperFile::get_current_time();
     if (!ticker) {
-        ticker = new ThreadTicker(usleep_int);
+        //ticker = new ThreadTicker(usleep_int);
+        ticker = new SignalTicker(usleep_int);
         ticker->start();
     } else {
         ticker->reset();

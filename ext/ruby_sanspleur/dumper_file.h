@@ -10,6 +10,9 @@
 class StackTraceSample;
 class InfoHeader;
 class StackLine;
+class StackTrace;
+
+
 #define USE_FOPEN
 
 class DumperFile
@@ -22,11 +25,11 @@ class DumperFile
 		int _file;
 #endif
 		const char *_filename;
-		int _usleep_value;
+		long _usleep_value;
 		bool _skip_writting;
 	
 		void write_info_header(const InfoHeader *header);
-		void write_stack_line_in_file(StackLine *line, struct stack_trace *trace, const char *suffix);
+		void write_stack_line_in_file(StackLine *line, StackTrace *trace, const char *suffix);
 		int write_string_in_file(const char *string, ...);
 		int write_integer_in_file(int integer);
 		int write_pointer_in_file(const void *pointer);
@@ -43,6 +46,6 @@ class DumperFile
 		void open_file_with_header(const InfoHeader *header);
 		void write_stack_trace_sample(StackTraceSample* sample);
 		void close_file_with_info(double duration, long long tick_count, const char *extra_info);
-		void write_stack_trace(struct stack_trace *trace);
+		void write_stack_trace(StackTrace *trace);
 		void skip_writting(bool skip);
 };

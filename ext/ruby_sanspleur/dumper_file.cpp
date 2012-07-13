@@ -107,7 +107,7 @@ void DumperFile::write_footer(double duration, long long tick_count, const char 
 void DumperFile::write_stack_trace_sample(StackTraceSample* sample)
 {
 	if (_file) {
-		struct stack_trace *trace;
+		StackTrace *trace;
 		
         trace = sample->get_first_stack_trace();
 		while (trace) {
@@ -117,7 +117,7 @@ void DumperFile::write_stack_trace_sample(StackTraceSample* sample)
 	}
 }
 
-void DumperFile::write_stack_trace(struct stack_trace *trace)
+void DumperFile::write_stack_trace(StackTrace *trace)
 {
 	if (_file) {
 		StackLine *line;
@@ -132,7 +132,7 @@ void DumperFile::write_stack_trace(struct stack_trace *trace)
 	}
 }
 
-void DumperFile::write_stack_line_in_file(StackLine *line, struct stack_trace *trace, const char *suffix)
+void DumperFile::write_stack_line_in_file(StackLine *line, StackTrace *trace, const char *suffix)
 {
 	if (_skip_writting) {
 		return;
