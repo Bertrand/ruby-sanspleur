@@ -12,12 +12,6 @@
 
 static VALUE sanspleurModule;
 
-#if RUBY_VERSION == 191 // accomodate for this: http://redmine.ruby-lang.org/issues/show/3748
-# if defined(_WIN32)
-  __declspec(dllexport)
-# endif
-#endif
-
 void Init_ruby_sanspleur()
 {
     sanspleurModule = rb_define_module("RubySanspleur");
