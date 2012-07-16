@@ -17,6 +17,9 @@
 #include "info_header.h"
 
 
+#define ITIMER ITIMER_REAL
+
+
 #ifdef RUBY_VM /* ruby 1.9 and above */
 
 #include <ruby/st.h>
@@ -41,6 +44,28 @@
 #endif /* RUBY_VM */
 
 
+
+#include <time.h>
+#include <sys/time.h>
+
+#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+
+#include <mach/clock.h>
+#include <mach/mach.h>
+
+void clock_getrealtime(struct timespec* ts) {
+    clock_serv_t cclock;
+    mach_timespec_t mts;
+    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+    clock_get_time(cclock, &mts);
+    mach_port_deallocate(mach_task_self(), cclock);
+    ts->tv_sec = mts.tv_sec;
+    ts->tv_nsec = mts.tv_nsec;
+}
+
+#else
+#define clock_getrealtime(ts) clock_gettime(CLOCK_REALTIME, ts)
+#endif
 
 #define STRING_BUFFER_SIZE 1024
 
@@ -351,6 +376,19 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, VALUE data, VALU
 static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALUE self, ID mid, VALUE klass)
 #endif
 {
+    //struct itimerval timer;
+    //getitimer(ITIMER, &timer);
+    // fprintf(stderr, "pouet %ld %ld\n", timer.it_value.tv_sec, timer.it_value.tv_usec);
+
+    struct timespec tp;
+    clock_getrealtime(&tp);
+    //fprintf(stderr, "gli %ld %ld\n", tp.tv_sec, tp.tv_nsec);
+
+    //struct timeval tp;
+    //gettimeofday(&tp, NULL);
+    //fprintf(stderr, "gli %ld %ld\n", tp.tv_sec, tp.tv_usec);
+
+
     double sample_duration = 0;
 
     if (thread_to_sample == CURRENT_THREAD && sample) {
@@ -462,7 +500,6 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     }
     if (!thread_to_sample) {
         thread_to_sample = CURRENT_THREAD;
-        DEBUG_PRINTF("Thread to sample : %p\n", thread_to_sample);
     }
     if (sample) {
         delete sample;
@@ -484,13 +521,23 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     }
     start_sample_date = DumperFile::get_current_time();
     if (!ticker) {
-        //ticker = new ThreadTicker(usleep_int);
-        ticker = new SignalTicker(usleep_int);
-        ticker->start();
+        ticker = new ThreadTicker(usleep_int);
+        //ticker = new SignalTicker(usleep_int);
+        //ticker->start();
     } else {
         ticker->reset();
         ticker->resume();
     }
+
+
+    // struct itimerval timer;
+    // timer.it_value.tv_sec = 0;
+    // timer.it_value.tv_usec = usleep_int;
+    // timer.it_interval.tv_sec = 0;
+    // timer.it_interval.tv_usec = usleep_int;
+    // setitimer(ITIMER, &timer, NULL);
+
+
     sanspleur_install_sampler_hook();
     delete info_header;
     return Qnil;
@@ -524,7 +571,9 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
         dumper = NULL;
     }
     
-    DEBUG_PRINTF("thread called %d, stack trace %d\n", sample.thread_called_count, sample.stack_trace_record_count);
+    if (sample) {
+        DEBUG_PRINTF("tick count: %lld\n", sample->get_total_tick_count());
+    }
     return Qnil;
 }
 

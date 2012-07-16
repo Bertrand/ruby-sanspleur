@@ -6,8 +6,8 @@
  */
 
 
-//#define DEBUG_PRINTF(...) fprintf(stderr, __VA_ARGS__)
-#define DEBUG_PRINTF(...)
+#define DEBUG_PRINTF(...) fprintf(stderr, __VA_ARGS__)
+//#define DEBUG_PRINTF(...)
 
 #ifdef __cplusplus 
 extern "C" {
