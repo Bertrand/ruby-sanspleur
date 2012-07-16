@@ -261,7 +261,7 @@ static void _stacktrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
             iseq = iseq->parent_iseq;
         }
 
-        if (iseq) {
+        if (iseq != 0 && cfp->pc != 0) {
             file_name = RSTRING_PTR(iseq->filename);
         }
 
