@@ -14,6 +14,7 @@
 #include "stack_trace_sample.h"
 #include "thread_ticker.h"
 #include "signal_ticker.h"
+#include "clock_ticker.h"
 #include "info_header.h"
 
 
@@ -54,11 +55,15 @@
 #include <mach/mach.h>
 
 void clock_getrealtime(struct timespec* ts) {
-    clock_serv_t cclock;
+    static bool cclock_initialized = false;
+    static clock_serv_t cclock;
     mach_timespec_t mts;
-    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+    if (cclock_initialized == false) {
+        host_get_clock_service(mach_host_self(), REALTIME_CLOCK, &cclock);
+        cclock_initialized = true;
+    }
     clock_get_time(cclock, &mts);
-    mach_port_deallocate(mach_task_self(), cclock);
+    //mach_port_deallocate(mach_task_self(), cclock);
     ts->tv_sec = mts.tv_sec;
     ts->tv_nsec = mts.tv_nsec;
 }
@@ -376,34 +381,28 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, VALUE data, VALU
 static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALUE self, ID mid, VALUE klass)
 #endif
 {
-    //struct itimerval timer;
-    //getitimer(ITIMER, &timer);
-    // fprintf(stderr, "pouet %ld %ld\n", timer.it_value.tv_sec, timer.it_value.tv_usec);
-
-    struct timespec tp;
-    clock_getrealtime(&tp);
-    //fprintf(stderr, "gli %ld %ld\n", tp.tv_sec, tp.tv_nsec);
-
-    //struct timeval tp;
-    //gettimeofday(&tp, NULL);
-    //fprintf(stderr, "gli %ld %ld\n", tp.tv_sec, tp.tv_usec);
-
-
-    double sample_duration = 0;
+    long long tick_count = 0;
 
     if (thread_to_sample == CURRENT_THREAD && sample) {
        sample->thread_called();
     }
 
+    // struct timespec tp;
+    // clock_getrealtime(&tp);
+
+return;
+
     if (thread_to_sample == CURRENT_THREAD && ticker) {
-        sample_duration = ticker->time_since_anchor();
+        tick_count = ticker->ticks_since_anchor();
+        //fprintf(stderr, "sample duration : %lld\n", tick_count);
     }
 
-
-    if (sample_duration != 0) {
+return;
+    if (tick_count != 0) {
+        fprintf(stderr, "tick\n");
         StackTrace *new_trace = new StackTrace();
-        new_trace->sample_duration = sample_duration;
-        new_trace->sample_tick_count = ticker->ticks_since_anchor();
+        new_trace->sample_duration = ticker->time_since_anchor();
+        new_trace->sample_tick_count = tick_count; // ticker->ticks_since_anchor();
         new_trace->ruby_event = event;
         new_trace->call_method = sanspleur_copy_string(rb_id2name(mid));
 
@@ -521,22 +520,14 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     }
     start_sample_date = DumperFile::get_current_time();
     if (!ticker) {
-        ticker = new ThreadTicker(usleep_int);
+        //ticker = new ThreadTicker(usleep_int);
         //ticker = new SignalTicker(usleep_int);
-        //ticker->start();
+        ticker = new ClockTicker(usleep_int);
+        ticker->start();
     } else {
         ticker->reset();
         ticker->resume();
     }
-
-
-    // struct itimerval timer;
-    // timer.it_value.tv_sec = 0;
-    // timer.it_value.tv_usec = usleep_int;
-    // timer.it_interval.tv_sec = 0;
-    // timer.it_interval.tv_usec = usleep_int;
-    // setitimer(ITIMER, &timer, NULL);
-
 
     sanspleur_install_sampler_hook();
     delete info_header;
