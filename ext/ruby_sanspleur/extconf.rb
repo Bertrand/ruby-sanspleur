@@ -39,7 +39,8 @@ def add_define(name, value = nil)
   end
 end
 # $CFLAGS = "-fPIC -g $(cflags) -O0"
-# $CPPFLAGS += " -O0"
+# $CFLAGS = "-g -O0"
+
 
 add_define("RUBY_VERSION", RUBY_VERSION.gsub('.', ''))
 
