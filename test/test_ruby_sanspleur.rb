@@ -23,7 +23,7 @@ end
 
 class SansPleurTest < Test::Unit::TestCase
   def test_bonjour
-    RubySanspleur.start_sample("pouet", 100000, "/tmp/glu", nil)
+    RubySanspleur.start_sample("pouet", 1000, "/tmp/glu", nil)
     c = AClass.new
     c.glu
    	RubySanspleur.stop_sample("")

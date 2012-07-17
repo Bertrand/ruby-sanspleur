@@ -16,19 +16,30 @@
 #include <stdio.h> 
 #include <string.h> 
 
+#include "ruby_backtrace_walker.h"
 
 #define SIGNAL SIGALRM
 #define ITIMER ITIMER_REAL
  
 
+#define safe_string(__s__) (__s__ ? __s__ : "")
+
 double global_thread_time = 0;
 int global_tick_count = 0;
 int global_usleep_value = 0;
+
+static void add_line_to_trace(void* anonymous_trace, const char* file_name, int line_number, const char* function_name, ID function_id, const char* class_name, ID class_id)
+{
+    //fprintf(stderr, "New backtrace line : %s:%d %s::%s\n", safe_string(file_name), line_number, safe_string(class_name), safe_string(function_name));
+}
 
 static void timer_handler(int signal)
 {
 	global_thread_time += global_usleep_value / 1000000.0;
 	global_tick_count++;
+
+    ruby_backtrace_each(add_line_to_trace, (void*)NULL); 
+    //fprintf(stderr, "--------\n");
 }
 
 SignalTicker::SignalTicker(int usleep_value)
