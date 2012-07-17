@@ -39,7 +39,7 @@ module RubySanspleur
 
       if sampling_enabled then
         response = ::File.open(tracefile_path, "r")
-        headers = {"Cache-Control" => "no-cache", "Content-Type" => "application/binary", "Content-Disposition" => 'attachment; filename="profile.rubytrace"'}
+        headers = {"Cache-Control" => "no-cache", "Content-Type" => "application/rubytrace", "Content-Disposition" => 'attachment; filename="profile.rubytrace"'}
         status = 200
       end
       

@@ -6,86 +6,79 @@
  */
 
 #include "clock_ticker.h"
-#include "sampler.h"
+#include <time.h>
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/time.h>
+#ifdef __MACH__
 
-#include <signal.h> 
-#include <stdio.h> 
-#include <string.h> 
+#include <mach/mach_time.h>
 
+uint64_t nanosecond_clock_value()
+{
+    uint64_t        elapsed;
+    uint64_t        elapsedNano;
+    static mach_timebase_info_data_t    sTimebaseInfo;
 
-    //struct itimerval timer;
-    //getitimer(ITIMER, &timer);
-    // fprintf(stderr, "pouet %ld %ld\n", timer.it_value.tv_sec, timer.it_value.tv_usec);
+    elapsed = mach_absolute_time();
 
-    //struct timespec tp;
-    //clock_getrealtime(&tp);
-    //fprintf(stderr, "gli %ld %ld\n", tp.tv_sec, tp.tv_nsec);
+    if ( sTimebaseInfo.denom == 0 ) {
+        (void) mach_timebase_info(&sTimebaseInfo);
+    }
 
-    //struct timeval tp;
-    //gettimeofday(&tp, NULL);
-    //fprintf(stderr, "gli %ld %ld\n", tp.tv_sec, tp.tv_usec);
+    elapsedNano = elapsed * sTimebaseInfo.numer / sTimebaseInfo.denom;
 
+    return elapsedNano;
+}
 
+#else /* __MACH__ */
+
+uint64_t nanosecond_clock_value()
+{
+	uint64_t elapsed;
+	struct timespec ts;
+	
+	clock_gettime(CLOCK_REALTIME, &ts);
+	elapsed = 1000000000 * ts.tv_sec + ts.tv_nsec;
+
+	return elapsed;
+}
+
+#endif /* __MACH__ */
 
 ClockTicker::ClockTicker(int usleep_value)
 {
-	_tick_interval = usleep_value;
+	_tick_interval = usleep_value * 1000;
 }
 
 ClockTicker::~ClockTicker()
 {
 }
 
-void ClockTicker::get_current_time(TIME_STRUCT_TYPE* time)
-{
-	gettimeofday(time, NULL);
-}
-
-double ClockTicker::time_interval_since(TIME_STRUCT_TYPE* time)
-{
-	TIME_STRUCT_TYPE now; 
-	get_current_time(&now);
-
-	return (now.tv_sec - time->tv_sec) + (now.tv_usec - time->tv_usec) * 0.000001;
-}
-
-double ClockTicker::time_since_anchor()
-{
-	return time_interval_since(&_anchor_time);
-}
-
-double ClockTicker::time_since_start()
-{
-	return time_interval_since(&_start_time);
-}
-
-double ClockTicker::tick_interval_in_seconds()
-{
-	return _tick_interval / 1000000.0;
-}
-
 void ClockTicker::sync_anchor()
 {
-	get_current_time(&_anchor_time);
+	_anchor_time = nanosecond_clock_value();
 }
 
 long long ClockTicker::ticks_since_anchor()
 {
-	return (long long)(time_since_anchor() / tick_interval_in_seconds());
+	uint64_t elapsed = nanosecond_clock_value() - _anchor_time;
+	return elapsed / _tick_interval;
 }
 
 long long ClockTicker::total_tick_count()
 {
-	return (long long)(time_since_start() / tick_interval_in_seconds());
+	uint64_t elapsed = nanosecond_clock_value() - _start_time;
+	return elapsed / _tick_interval;
+}
+
+double ClockTicker::time_since_anchor()
+{
+	uint64_t elapsed = nanosecond_clock_value() - _anchor_time;
+	return (double)elapsed / 1000000000.0;
 }
 
 void ClockTicker::start()
 {
-	get_current_time(&_start_time);
+	_start_time = nanosecond_clock_value();
 	_anchor_time = _start_time;
 }
 
@@ -100,10 +93,10 @@ void ClockTicker::pause()
 
 void ClockTicker::resume()
 {
-
+	start();
 }
 
 void ClockTicker::reset()
 {
-
+	start();
 }

@@ -6,21 +6,16 @@
  */
 
 #include "generic_ticker.h"
-#include <sys/time.h>
+#include <stdint.h>
 
-#define TIME_STRUCT_TYPE struct timeval
+
 
 class ClockTicker : public GenericTicker {
 	protected:
 
-		TIME_STRUCT_TYPE _start_time; 
-		TIME_STRUCT_TYPE _anchor_time; 
-		long _tick_interval; 
-
-		void get_current_time(TIME_STRUCT_TYPE* time);
-		double time_interval_since(TIME_STRUCT_TYPE* time);
-		double time_since_start();
-		double tick_interval_in_seconds();
+		uint64_t _start_time; 
+		uint64_t _anchor_time; 
+		uint64_t _tick_interval; 
 
 		~ClockTicker();
 		

@@ -17,10 +17,6 @@
 #include "clock_ticker.h"
 #include "info_header.h"
 
-
-#define ITIMER ITIMER_REAL
-
-
 #ifdef RUBY_VM /* ruby 1.9 and above */
 
 #include <ruby/st.h>
@@ -34,43 +30,15 @@
 
 #include <st.h>
 
-// #define THREAD_TYPE rb_thread_t
-// #define CURRENT_THREAD ((rb_thread_t)DATA_PTR(rb_thread_current()))
-// #define MAIN_THREAD (DATA_PTR(rb_thread_main()))
+#define THREAD_TYPE rb_thread_t
+#define CURRENT_THREAD ((rb_thread_t)DATA_PTR(rb_thread_current()))
+#define MAIN_THREAD (DATA_PTR(rb_thread_main()))
 
-#define THREAD_TYPE VALUE
-#define CURRENT_THREAD (rb_thread_current())
-#define MAIN_THREAD (rb_thread_main())
+// #define THREAD_TYPE VALUE
+// #define CURRENT_THREAD (rb_thread_current())
+// #define MAIN_THREAD (rb_thread_main())
  
 #endif /* RUBY_VM */
-
-
-
-#include <time.h>
-#include <sys/time.h>
-
-#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
-
-#include <mach/clock.h>
-#include <mach/mach.h>
-
-void clock_getrealtime(struct timespec* ts) {
-    static bool cclock_initialized = false;
-    static clock_serv_t cclock;
-    mach_timespec_t mts;
-    if (cclock_initialized == false) {
-        host_get_clock_service(mach_host_self(), REALTIME_CLOCK, &cclock);
-        cclock_initialized = true;
-    }
-    clock_get_time(cclock, &mts);
-    //mach_port_deallocate(mach_task_self(), cclock);
-    ts->tv_sec = mts.tv_sec;
-    ts->tv_nsec = mts.tv_nsec;
-}
-
-#else
-#define clock_getrealtime(ts) clock_gettime(CLOCK_REALTIME, ts)
-#endif
 
 #define STRING_BUFFER_SIZE 1024
 
@@ -382,27 +350,20 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 #endif
 {
     long long tick_count = 0;
-
     if (thread_to_sample == CURRENT_THREAD && sample) {
        sample->thread_called();
     }
 
-    // struct timespec tp;
-    // clock_getrealtime(&tp);
-
-return;
-
     if (thread_to_sample == CURRENT_THREAD && ticker) {
         tick_count = ticker->ticks_since_anchor();
-        //fprintf(stderr, "sample duration : %lld\n", tick_count);
+        fprintf(stderr, "sample duration : %lld\n", tick_count);
     }
 
-return;
     if (tick_count != 0) {
         fprintf(stderr, "tick\n");
         StackTrace *new_trace = new StackTrace();
         new_trace->sample_duration = ticker->time_since_anchor();
-        new_trace->sample_tick_count = tick_count; // ticker->ticks_since_anchor();
+        new_trace->sample_tick_count = tick_count;
         new_trace->ruby_event = event;
         new_trace->call_method = sanspleur_copy_string(rb_id2name(mid));
 
@@ -422,11 +383,10 @@ return;
 
 static void sanspleur_install_sampler_hook()
 {
+    fprintf(stderr, "installing event hook\n");
+
 #ifdef RUBY_VM
-    rb_add_event_hook(sanspleur_sampler_event_hook,
-        // RUBY_EVENT_CALL    | RUBY_EVENT_C_CALL      |
-        RUBY_EVENT_RETURN  | RUBY_EVENT_C_RETURN    |
-        RUBY_EVENT_LINE, Qnil); // RUBY_EVENT_SWITCH
+    rb_add_event_hook(sanspleur_sampler_event_hook, RUBY_EVENT_RETURN  | RUBY_EVENT_C_RETURN, Qnil); 
 #else
     rb_add_event_hook(sanspleur_sampler_event_hook,
         RUBY_EVENT_CALL   | RUBY_EVENT_C_CALL     |
@@ -441,6 +401,8 @@ static void sanspleur_install_sampler_hook()
 
 static void sanspleur_remove_sampler_hook()
 {
+    fprintf(stderr, "removing event hook\n");
+
 #if defined(TOGGLE_GC_STATS)
     rb_gc_disable_stats();
 #endif
@@ -521,8 +483,8 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     start_sample_date = DumperFile::get_current_time();
     if (!ticker) {
         //ticker = new ThreadTicker(usleep_int);
-        //ticker = new SignalTicker(usleep_int);
-        ticker = new ClockTicker(usleep_int);
+        ticker = new SignalTicker(usleep_int);
+        //ticker = new ClockTicker(usleep_int);
         ticker->start();
     } else {
         ticker->reset();
@@ -565,6 +527,9 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
     if (sample) {
         DEBUG_PRINTF("tick count: %lld\n", sample->get_total_tick_count());
     }
+
+    thread_to_sample = NULL;
+
     return Qnil;
 }
 

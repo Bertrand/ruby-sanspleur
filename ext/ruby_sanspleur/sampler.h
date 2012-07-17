@@ -20,7 +20,6 @@ extern "C" {
 #include <node.h>
 #endif
 
-
 VALUE sanspleur_set_current_thread_to_sample(VALUE self);
 VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE extra_info);
 VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info);
