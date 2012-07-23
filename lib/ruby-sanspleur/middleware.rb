@@ -18,6 +18,21 @@ module RubySanspleur
             :interval => 100000
           }
 
+          hexkey = "bebba81c39faa76ddadf36432bc0dfb67bb4fb7816fcdd6dffc294d4d4d620b16f0a7a5dae8fd99405a7ed61db4c1d0e320ca47c908bedb4cf3730ae4fcf2c25"
+          key = Array(hexkey).pack('H*')
+
+          url_scheme = env["rack.url_scheme"]
+          host_name = env["HTTP_HOST"] || env["SERVER_NAME"] # fallback to SERVER_NAME will not work if using an explicit HTTP port in the request
+          full_path = env["ORIGINAL_FULLPATH"] 
+          if (full_path.nil?)
+            full_path = env["PATH_INFO"] + (env["QUERY_STRING"].empty? ? "" : ("?" + env["QUERY_STRING"]))
+          end
+          original_url = url_scheme + "://" + host_name + full_path
+
+          signature =  OpenSSL::HMAC.hexdigest('sha1', key, original_url)
+
+          # XXX  - check signature
+          
           options = defaults_options.merge(query_hash.slice(*VALID_RUBY_SANSPLEUR_OPTIONS))
           interval = options[:interval].to_i
 
