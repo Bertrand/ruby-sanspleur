@@ -23,4 +23,6 @@ class InfoHeader
 		long get_usleep_int() const;
 		const char *get_start_date() const;
 		const char *get_extra_info_string() const;
+	private:
+		InfoHeader(const InfoHeader&);   // forbid accidental copy.
 };
