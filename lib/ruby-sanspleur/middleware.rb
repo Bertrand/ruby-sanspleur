@@ -1,8 +1,9 @@
+require 'timeout'
 module RubySanspleur
   
   class Middleware
     TRUE_VALUES = ["1", "true", "yes"]
-    VALID_RUBY_SANSPLEUR_OPTIONS = [:interval]
+    VALID_RUBY_SANSPLEUR_OPTIONS = [:interval, :timeout]
 
     def initialize(app, options = {})
       @app = app
@@ -12,6 +13,8 @@ module RubySanspleur
       sampling_enabled = false
 
       if env["QUERY_STRING"].index('ruby_sanspleur') then # quickly discard normal requests
+        logger = env["rack.logger"]
+        logger.info { "sampling request #{env["PATH_INFO"]}" } if logger
         query_hash = Rack::Utils::parse_query(env["QUERY_STRING"]).symbolize_keys! rescue nil
         if (query_hash && TRUE_VALUES.include?(query_hash[:ruby_sanspleur])) then 
           defaults_options = {
@@ -35,6 +38,7 @@ module RubySanspleur
           
           options = defaults_options.merge(query_hash.slice(*VALID_RUBY_SANSPLEUR_OPTIONS))
           interval = options[:interval].to_i
+          timeout = options[:timeout] && options[:timeout].to_f
 
           # safe dirty way to get a temporary filename.  
           tmpfile = Tempfile.new("profile.rubytrace")
@@ -46,19 +50,32 @@ module RubySanspleur
         end
       end
 
-      begin
-        status, headers, response = @app.call(env)
-      ensure
-        RubySanspleur.stop_sample(nil) if sampling_enabled
-      end
+      if sampling_enabled
+        begin
+          if timeout
+            logger.debug { "sampling with timeout #{timeout}" } if logger
+            Timeout.timeout(timeout)  { @app.call(env) }
+          else
+            logger.debug { "sampling without timeout" } if logger
+            @app.call(env) 
+          end
+        rescue => e
+          logger.warn { "got an exception while sampling #{e}" } if logger
+        ensure
+          # there are situations where we cannot catch the exception but ensure are called...
+          RubySanspleur.stop_sample(nil)
+        end
 
-      if sampling_enabled then
+        # logger.debug { "finalize sampling" } if logger
         response = ::File.open(tracefile_path, "r")
         headers = {"Cache-Control" => "no-cache", "Content-Type" => "application/rubytrace", "Content-Disposition" => 'attachment; filename="profile.rubytrace"'}
         status = 200
+        # logger.debug { "sampling done" } if logger
+        
+        [ status, headers, response ]
+      else
+        @app.call(env)
       end
-      
-      [ status, headers, response ]
     end # call
 
   end # Middleware
