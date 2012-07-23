@@ -36,13 +36,7 @@ typedef rb_event_t rb_event_flag_t;
 #endif /* RUBY_VM */
 
 
-
-
-
-#define safe_string(__s__) (__s__ ? __s__ : "")
-
 #ifdef RUBY_VM /* ruby 1.9 and above */
-
 
 struct rb_iseq_struct;
 

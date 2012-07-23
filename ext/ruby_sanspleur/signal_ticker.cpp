@@ -22,7 +22,6 @@
 #define ITIMER ITIMER_REAL
  
 
-#define safe_string(__s__) (__s__ ? __s__ : "")
 
 double global_thread_time = 0;
 int global_tick_count = 0;
@@ -38,7 +37,7 @@ static void timer_handler(int signal)
 	global_thread_time += global_usleep_value / 1000000.0;
 	global_tick_count++;
 
-    ruby_backtrace_each(add_line_to_trace, (void*)NULL); 
+    //ruby_backtrace_each(add_line_to_trace, (void*)NULL); 
     //fprintf(stderr, "--------\n");
 }
 

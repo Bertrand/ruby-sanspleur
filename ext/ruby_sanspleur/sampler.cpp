@@ -136,7 +136,6 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 static void sanspleur_install_sampler_hook()
 {
     fprintf(stderr, "installing event hook\n");
-return;
 #ifdef RUBY_VM
     rb_add_event_hook(sanspleur_sampler_event_hook, RUBY_EVENT_RETURN  | RUBY_EVENT_C_RETURN, Qnil); 
 #else
@@ -235,8 +234,8 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE fi
     start_sample_date = DumperFile::get_current_time();
     if (!ticker) {
         //ticker = new ThreadTicker(usleep_int);
-        ticker = new SignalTicker(usleep_int);
-        //ticker = new ClockTicker(usleep_int);
+        //ticker = new SignalTicker(usleep_int);
+        ticker = new ClockTicker(usleep_int);
         ticker->start();
     } else {
         ticker->reset();

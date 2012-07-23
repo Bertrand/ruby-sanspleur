@@ -9,6 +9,9 @@
 //#define DEBUG_PRINTF(...) fprintf(stderr, __VA_ARGS__)
 #define DEBUG_PRINTF(...)
 
+#define safe_string(__s__) (__s__ ? __s__ : "")
+
+
 #ifdef __cplusplus 
 extern "C" {
 #endif
