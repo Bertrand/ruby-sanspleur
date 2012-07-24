@@ -11,14 +11,14 @@ class SignalTicker : public GenericTicker {
 	protected:
 		double _anchor_time;
 		double _thread_time;
-		int _usleep_value;
+		int _microseconds_interval;
 		int _thread_running;
 		int _tick_count;
 
 		~SignalTicker();
 		
 	public:
-		SignalTicker(int usleep_value);
+		SignalTicker(int microseconds_interval);
 		
 		double time_since_anchor();
 		void sync_anchor();

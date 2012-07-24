@@ -25,7 +25,7 @@
 
 double global_thread_time = 0;
 int global_tick_count = 0;
-int global_usleep_value = 0;
+int global_microseconds_interval = 0;
 
 static void add_line_to_trace(void* anonymous_trace, const char* file_name, int line_number, const char* function_name, ID function_id, const char* class_name, ID class_id)
 {
@@ -34,18 +34,18 @@ static void add_line_to_trace(void* anonymous_trace, const char* file_name, int 
 
 static void timer_handler(int signal)
 {
-	global_thread_time += global_usleep_value / 1000000.0;
+	global_thread_time += global_microseconds_interval / 1000000.0;
 	global_tick_count++;
 
     //ruby_backtrace_each(add_line_to_trace, (void*)NULL); 
     //fprintf(stderr, "--------\n");
 }
 
-SignalTicker::SignalTicker(int usleep_value)
+SignalTicker::SignalTicker(int microseconds_interval)
 {
 	_thread_time = sanspleur_get_current_time();
 	_anchor_time = _thread_time;
-	_usleep_value = usleep_value;
+	_microseconds_interval = microseconds_interval;
 	_thread_running = 0;
 	_tick_count = 0;
 }
@@ -83,7 +83,7 @@ void SignalTicker::start()
 	_thread_running = 1;
 	
 	global_thread_time = 0;
-	global_usleep_value = _usleep_value;
+	global_microseconds_interval = _microseconds_interval;
 	_anchor_time = global_thread_time;
 
 	memset (&sa, 0, sizeof (sa));
@@ -92,9 +92,9 @@ void SignalTicker::start()
 	sigaction (SIGNAL, &sa, NULL);
 
 	timer.it_value.tv_sec = 0;
-	timer.it_value.tv_usec = _usleep_value;
+	timer.it_value.tv_usec = _microseconds_interval;
 	timer.it_interval.tv_sec = 0;
-	timer.it_interval.tv_usec = _usleep_value;
+	timer.it_interval.tv_usec = _microseconds_interval;
 	setitimer(ITIMER, &timer, NULL);
 }
 

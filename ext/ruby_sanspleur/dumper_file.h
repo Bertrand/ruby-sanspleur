@@ -25,7 +25,7 @@ class DumperFile
 		int _file;
 #endif
 		const char *_filename;
-		long _usleep_value;
+		long _microseconds_interval;
 	
 		void write_info_header(const InfoHeader *header);
 		void write_stack_line_in_file(StackLine *line, StackTrace *trace, const char *suffix);

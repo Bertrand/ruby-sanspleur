@@ -12,32 +12,23 @@ module RubySanspleur
     def call(env)
       sampling_enabled = false
 
-      if env["QUERY_STRING"].index('ruby_sanspleur') then # quickly discard normal requests
+      # quickly discard normal requests
+      if env["QUERY_STRING"].index('ruby_sanspleur') then 
         logger = env["rack.logger"]
         logger.info { "sampling request #{env["PATH_INFO"]}" } if logger
         query_hash = Rack::Utils::parse_query(env["QUERY_STRING"]).symbolize_keys! rescue nil
+
         if (query_hash && TRUE_VALUES.include?(query_hash[:ruby_sanspleur])) then 
+
+          # check auth
+          raise InvalidSecret unless self.request_authorized?(env)
+
+          # compute params
           defaults_options = {
-            :interval => 100000
+            :interval => 10
           }
-
-          hexkey = "bebba81c39faa76ddadf36432bc0dfb67bb4fb7816fcdd6dffc294d4d4d620b16f0a7a5dae8fd99405a7ed61db4c1d0e320ca47c908bedb4cf3730ae4fcf2c25"
-          key = Array(hexkey).pack('H*')
-
-          url_scheme = env["rack.url_scheme"]
-          host_name = env["HTTP_HOST"] || env["SERVER_NAME"] # fallback to SERVER_NAME will not work if using an explicit HTTP port in the request
-          full_path = env["ORIGINAL_FULLPATH"] 
-          if (full_path.nil?)
-            full_path = env["PATH_INFO"] + (env["QUERY_STRING"].empty? ? "" : ("?" + env["QUERY_STRING"]))
-          end
-          original_url = url_scheme + "://" + host_name + full_path
-
-          signature =  OpenSSL::HMAC.hexdigest('sha1', key, original_url)
-
-          # XXX  - check signature
-          
           options = defaults_options.merge(query_hash.slice(*VALID_RUBY_SANSPLEUR_OPTIONS))
-          interval = options[:interval].to_i
+          microseconds_interval = options[:interval].to_i * 1000 
           timeout = options[:timeout] && options[:timeout].to_f
 
           # safe dirty way to get a temporary filename.  
@@ -45,7 +36,8 @@ module RubySanspleur
           tracefile_path = tmpfile.path
           tmpfile.close(true) # force deletion
 
-          RubySanspleur.start_sample(env['HTTP_HOST'] + env["REQUEST_URI"], interval, tracefile_path, nil)
+          # start sampling
+          RubySanspleur.start_sample(env['HTTP_HOST'] + env["REQUEST_URI"], microseconds_interval, tracefile_path, nil)
           sampling_enabled = true
         end
       end
@@ -66,17 +58,64 @@ module RubySanspleur
           RubySanspleur.stop_sample(nil)
         end
 
-        # logger.debug { "finalize sampling" } if logger
+        logger.debug { "finalize sampling" } if logger
         response = ::File.open(tracefile_path, "r")
         headers = {"Cache-Control" => "no-cache", "Content-Type" => "application/rubytrace", "Content-Disposition" => 'attachment; filename="profile.rubytrace"'}
         status = 200
-        # logger.debug { "sampling done" } if logger
+        logger.debug { "sampling done" } if logger
         
         [ status, headers, response ]
       else
         @app.call(env)
       end
     end # call
+
+    def request_authorized?(env)
+      delegated_authorization_proc = self.delegate_proc_for_config_key(:should_allow_sampling_request)
+      if delegated_authorization_proc then
+        delegated_authorization_proc.call(env)
+      else 
+        computed_signature =  OpenSSL::HMAC.hexdigest('sha1', self.secret_key, self.original_request_uri(env))
+        transmitted_signature = env["HTTP_X_RUBY_SANSPLEUR_SIGNATURE"]
+        computed_signature && (computed_signature.casecmp(transmitted_signature) == 0)
+      end
+    end
+
+    def secret_key
+      secret_hex_key = self.value_for_config_key(:secret_hex_key)
+      raise InvalidConfiguration.new("Invalid configuration: no secret key provided.") if secret_hex_key.nil?
+      Array(secret_hex_key).pack('H*') 
+    end
+
+    def original_request_uri(env)
+      delegated_original_request_uri_proc = self.delegate_proc_for_config_key(:orignal_uri_for_rack_environment)
+      if delegated_original_request_uri_proc then 
+        delegated_original_request_uri_proc(env)
+      else
+        url_scheme = env["rack.url_scheme"]
+        host_name = env["HTTP_HOST"] || env["SERVER_NAME"] # fallback to SERVER_NAME will not work if there is an explicit HTTP port in the request
+        full_path = env["ORIGINAL_FULLPATH"] # normally put by rails to store the original url before middlewares start butchering 
+        full_path ||= env["PATH_INFO"] + (env["QUERY_STRING"].empty? ? "" : ("?" + env["QUERY_STRING"]))
+        
+        url_scheme + "://" + host_name + full_path
+      end
+    end
+
+    # config utils
+
+    def value_for_config_key(key)
+      raw_value = self._raw_value_for_config_key(key)
+      raw_value.is_a?(Proc) ? raw_value.call : raw_value
+    end
+
+    def delegate_proc_for_config_key(key)
+      config_value = self._raw_value_for_config_key(key)
+      config_value.is_a?(Proc) && config_value
+    end
+
+    def _raw_value_for_config_key(key)
+      Rails.application.config.ruby_sanspleur[key]
+    end
 
   end # Middleware
   

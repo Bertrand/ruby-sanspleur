@@ -34,11 +34,11 @@ static void *thread_function(void *instance)
 	return result;
 }
 
-ThreadTicker::ThreadTicker(long usleep_value)
+ThreadTicker::ThreadTicker(long microseconds_interval)
 {
 	_elapsed_time = 0;
 	_anchored_time = 0;
-	_usleep_value = usleep_value;
+	_microseconds_interval = microseconds_interval;
 	_anchored_tick = 0;
 	_current_tick = 0;
 	
@@ -165,7 +165,7 @@ void ThreadTicker::runTicks()
 	struct timespec remainingTime;
 	
 	waitRequest.tv_sec = 0;
-	waitRequest.tv_nsec = _usleep_value * 1000;
+	waitRequest.tv_nsec = _microseconds_interval * 1000;
 	
 	do {
 		remainingTime.tv_sec = 0;

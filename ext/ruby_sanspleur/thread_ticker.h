@@ -28,7 +28,7 @@ class ThreadTicker : public GenericTicker {
 		long long			_anchored_tick;
 		long long			_current_tick;
 
-		long				_usleep_value;
+		long				_microseconds_interval;
 		
 		pthread_t			_thread;
 		pthread_mutex_t		_mutex;
@@ -40,7 +40,7 @@ class ThreadTicker : public GenericTicker {
 		void runTicks();
 		
 	public:
-		ThreadTicker(long usleep_value);
+		ThreadTicker(long microseconds_interval);
 		
 		double time_since_anchor();
 		void sync_anchor();

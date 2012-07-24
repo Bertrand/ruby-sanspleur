@@ -9,6 +9,7 @@ rescue Exception
 end
 
 
+require "ruby-sanspleur/errors"
 require "ruby-sanspleur/middleware"
 
 # begin

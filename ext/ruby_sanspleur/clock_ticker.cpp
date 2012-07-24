@@ -44,9 +44,9 @@ uint64_t nanosecond_clock_value()
 
 #endif /* __MACH__ */
 
-ClockTicker::ClockTicker(int usleep_value)
+ClockTicker::ClockTicker(int microseconds_interval)
 {
-	_tick_interval = usleep_value * 1000;
+	_tick_interval = microseconds_interval * 1000;
 }
 
 ClockTicker::~ClockTicker()

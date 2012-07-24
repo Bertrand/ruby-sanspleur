@@ -194,13 +194,13 @@ VALUE sanspleur_set_current_thread_to_sample(VALUE self)
     return Qnil;
 }
 
-VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE extra_info)
+VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE microseconds_interval, VALUE file_name, VALUE extra_info)
 {
     DEBUG_PRINTF("Sampler: starting sampling session\n");
     int count = 0;
     const char *url_string = NULL;
     const char *extra_info_string = NULL;
-    long usleep_int = NUM2INT(usleep_value);
+    long usleep_int = NUM2INT(microseconds_interval);
     InfoHeader *info_header;
     const char *start_date;
     
@@ -287,7 +287,7 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
     return Qnil;
 }
 
-VALUE sanspleur_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_name, VALUE beginning_extra_info, VALUE end_extra_info)
+VALUE sanspleur_sample(VALUE self, VALUE url, VALUE microseconds_interval, VALUE file_name, VALUE beginning_extra_info, VALUE end_extra_info)
 {
     int result;
 
@@ -295,7 +295,7 @@ VALUE sanspleur_sample(VALUE self, VALUE url, VALUE usleep_value, VALUE file_nam
         rb_raise(rb_eArgError, "A block must be provided to the profile method.");
     }
     
-    sanspleur_start_sample(self, url, usleep_value, file_name, beginning_extra_info);
+    sanspleur_start_sample(self, url, microseconds_interval, file_name, beginning_extra_info);
     rb_protect(rb_yield, self, &result);
     return sanspleur_stop_sample(self, end_extra_info);
 }

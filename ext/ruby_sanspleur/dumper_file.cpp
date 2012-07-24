@@ -60,7 +60,7 @@ void DumperFile::open_file_with_header(const InfoHeader *info_header)
 	if (_file) {
 		_start_time = DumperFile::get_current_time();
 		this->write_info_header(info_header);
-		_usleep_value = info_header->get_usleep_int();
+		_microseconds_interval = info_header->get_usleep_int();
 	}
 }
 

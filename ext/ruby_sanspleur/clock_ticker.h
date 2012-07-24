@@ -20,7 +20,7 @@ class ClockTicker : public GenericTicker {
 		~ClockTicker();
 		
 	public:
-		ClockTicker(int usleep_value);
+		ClockTicker(int microseconds_interval);
 		
 		double time_since_anchor();
 		void sync_anchor();
