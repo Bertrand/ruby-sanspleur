@@ -12,8 +12,8 @@ end
 require "ruby-sanspleur/errors"
 require "ruby-sanspleur/middleware"
 
-# begin
-# 	require "ruby-sanspleur/railtie" if defined?(Rails) 
-# rescue Exception => ex
-# 	Logger.new(STDERR).error("Unable to load ruby_sanspleur railtie (#{ex.inspect}).")
-# end
+begin
+	require "ruby-sanspleur/railtie" if defined?(Rails) 
+rescue Exception => ex
+	Logger.new(STDERR).error("Unable to load ruby_sanspleur railtie (#{ex.inspect}).")
+end
