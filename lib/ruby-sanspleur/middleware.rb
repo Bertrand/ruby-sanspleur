@@ -81,8 +81,6 @@ module RubySanspleur
 
     def secret_key
       secret_hex_key = self.value_for_config_key(:secret_hex_key)
-      Rails.logger.info "secret_hex_key : #{secret_hex_key}"
-      raise "secret_hex_key : #{secret_hex_key}"
       raise InvalidConfiguration.new("Invalid configuration: no secret key provided.") if secret_hex_key.nil?
       Array(secret_hex_key).pack('H*') 
     end
