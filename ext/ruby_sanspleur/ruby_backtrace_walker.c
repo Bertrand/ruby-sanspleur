@@ -208,10 +208,6 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
             klass = cfp->me->klass;
             no_pos = 1;
         }
-        if (cfp->me) {
-            function_id = cfp->me->def->original_id;
-            klass = cfp->me->klass;
-        }
 
         while (iseq) {
             if (RUBY_VM_IFUNC_P(iseq)) {
@@ -220,9 +216,12 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
                 break;
             }
             if (iseq->defined_method_id) {
+                fprintf(stderr, "iseq->defined_method_id\n");
                 function_id = iseq->defined_method_id;
                 klass = iseq->klass;
                 break;
+            } else {
+                klass = iseq->klass;
             }
             if (iseq->local_iseq == iseq) {
                 break;
