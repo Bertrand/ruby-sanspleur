@@ -21,6 +21,9 @@ class StackLine {
 
 class StackTrace {
 	public:
+		StackTrace();
+		~StackTrace();
+
 		StackLine *stack_line;
 		StackTrace *next_stack_trace;
 	    double sample_duration;

@@ -126,6 +126,9 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
         if (dumper) {
             dumper->write_stack_trace(new_trace);
         }
+        if (!sample) {
+            delete new_trace;
+        }
         ticker->sync_anchor();
         DEBUG_PRINTF("------------\n");
 

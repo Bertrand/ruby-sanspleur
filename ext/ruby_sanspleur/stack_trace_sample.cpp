@@ -45,6 +45,20 @@ static void print_stack_trace(StackTrace *trace)
 	}
 }
 
+
+StackTrace::StackTrace()
+{
+	stack_line = NULL;
+	call_method = NULL;
+	next_stack_trace = NULL;
+}
+
+StackTrace::~StackTrace()
+{
+	free((void *)call_method);
+	empty_stack_line(stack_line);
+}
+
 const char *StackTraceSample::current_date_string()
 {
 	time_t date;
@@ -75,11 +89,8 @@ StackTraceSample::~StackTraceSample()
 	}
 	while (_first_stack_trace) {
 		StackTrace *tmp;
-        
-		empty_stack_line(_first_stack_trace->stack_line);
 		tmp = _first_stack_trace->next_stack_trace;
-		free((void *)_first_stack_trace->call_method);
-		free(_first_stack_trace);
+		delete _first_stack_trace;
 		_first_stack_trace = tmp;
 	}
     _last_stack_trace = NULL;

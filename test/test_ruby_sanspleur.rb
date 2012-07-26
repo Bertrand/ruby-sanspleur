@@ -20,7 +20,7 @@ class AClass
 	end
 
 	def self.short_loop
-		(1..10). each do 
+		(1..20). each do 
 			self.wait_a_little_bit
 		end
 	end
@@ -30,9 +30,10 @@ end
 
 class SansPleurTest < Test::Unit::TestCase
   def test_bonjour
-    RubySanspleur.start_sample("pouet", 100000, "/tmp/glu.rubytrace", nil)
+    RubySanspleur.start_sample("pouet", 1000, "/tmp/glu.rubytrace", nil)
     a = AClass.new
     a.long_loop
    	RubySanspleur.stop_sample("")
+   	sleep(10)
   end
 end
