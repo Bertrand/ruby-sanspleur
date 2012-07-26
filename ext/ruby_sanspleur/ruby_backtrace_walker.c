@@ -5,17 +5,12 @@
  *
  */
  
-
 #include "ruby_backtrace_walker.h"
 
 #ifdef RUBY_VM /* ruby 1.9 and above */
 
 #include <ruby/st.h>
 #include <ruby/intern.h>
-
-#define THREAD_TYPE VALUE
-#define CURRENT_THREAD (rb_thread_current())
-#define MAIN_THREAD (rb_thread_main())
 
 #else /* ruby 1.8*/
 
@@ -24,16 +19,13 @@
 #include <node.h>
 typedef rb_event_t rb_event_flag_t;
 
+#endif /* RUBY_VM */
 
-// #define THREAD_TYPE rb_thread_t
-// #define CURRENT_THREAD ((rb_thread_t)DATA_PTR(rb_thread_current()))
-// #define MAIN_THREAD (DATA_PTR(rb_thread_main()))
 
 #define THREAD_TYPE VALUE
 #define CURRENT_THREAD (rb_thread_current())
 #define MAIN_THREAD (rb_thread_main())
- 
-#endif /* RUBY_VM */
+
 
 
 #ifdef RUBY_VM /* ruby 1.9 and above */
@@ -187,15 +179,8 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
     const rb_control_frame_t *cfp_limit = (rb_control_frame_t*)(ruby_current_thread->stack + ruby_current_thread->stack_size);
     cfp_limit -= 2;
    
-    // This is a temporary hack on 1.9. We compute the stacktrace while 
-    // receiving a function return event. The current frame is not the 
-    // function from which we return, but its caller. 
-    // We should rather get info about returning function in the event
-    // itself, but for the moment, let's just walk a frame back. 
-    cfp--; 
-
     while (cfp < cfp_limit) {
-
+        const char* class_name = NULL; 
         ID function_id = 0; 
         VALUE klass = NULL;
         const char* file_name = NULL; 
@@ -215,14 +200,13 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
                 klass = NULL;
                 break;
             }
+            klass = iseq->klass;
+
             if (iseq->defined_method_id) {
-                fprintf(stderr, "iseq->defined_method_id\n");
                 function_id = iseq->defined_method_id;
-                klass = iseq->klass;
                 break;
-            } else {
-                klass = iseq->klass;
             }
+
             if (iseq->local_iseq == iseq) {
                 break;
             }
@@ -236,10 +220,18 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
         const char* function_name = NULL;
         if (function_id) function_name = rb_id2name(function_id); 
 
-        const char* class_name = NULL; 
-        if (klass) class_name = rb_class2name(klass); 
 
-        if (!no_pos) {
+        if (cfp->self) {
+            if (TYPE(cfp->self) == RUBY_T_CLASS || TYPE(cfp->self) == RUBY_T_MODULE) {
+                VALUE str = rb_obj_as_string(cfp->self);
+                class_name = RSTRING_PTR(str);
+            }        
+        }
+        if (klass && !class_name) {
+            class_name = rb_class2name(klass); 
+        }
+
+        if (no_pos < 0) {
             line_number = rb_vm_get_sourceline(cfp);
         }
         ID class_id = 0; 

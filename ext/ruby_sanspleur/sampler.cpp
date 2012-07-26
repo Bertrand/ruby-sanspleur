@@ -108,11 +108,10 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 
     if (thread_to_sample == CURRENT_THREAD && ticker) {
         tick_count = ticker->ticks_since_anchor();
-        //fprintf(stderr, "sample duration : %lld\n", tick_count);
     }
 
     if (tick_count != 0) {
-        //fprintf(stderr, "tick\n");
+        DEBUG_PRINTF("tick\n");
         StackTrace *new_trace = new StackTrace();
         new_trace->sample_duration = ticker->time_since_anchor();
         new_trace->sample_tick_count = tick_count;
@@ -135,7 +134,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 
 static void sanspleur_install_sampler_hook()
 {
-    fprintf(stderr, "installing event hook\n");
+    DEBUG_PRINTF("installing event hook\n");
 #ifdef RUBY_VM
     rb_add_event_hook(sanspleur_sampler_event_hook, RUBY_EVENT_RETURN  | RUBY_EVENT_C_RETURN, Qnil); 
 #else
@@ -152,7 +151,7 @@ static void sanspleur_install_sampler_hook()
 
 static void sanspleur_remove_sampler_hook()
 {
-    fprintf(stderr, "removing event hook\n");
+    DEBUG_PRINTF("removing event hook\n");
 
 #if defined(TOGGLE_GC_STATS)
     rb_gc_disable_stats();
@@ -275,11 +274,10 @@ VALUE sanspleur_stop_sample(VALUE self, VALUE extra_info)
         dumper = NULL;
     }
     
-    fprintf(stderr, "tick count: %lld\n", total_ticker_count);
+    DEBUG_PRINTF("tick count: %lld\n", total_ticker_count);
 
     if (sample) {
-        DEBUG_PRINTF("tick count: %lld\n", sample->get_total_tick_count());
-        fprintf(stderr, "tick count: %lld\n", sample->get_total_tick_count());
+        DEBUG_PRINTF("total tick count: %lld\n", sample->get_total_tick_count());
     }
 
     thread_to_sample = NULL;

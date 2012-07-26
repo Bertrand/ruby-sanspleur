@@ -1,9 +1,20 @@
 require 'test/unit'
 require 'ruby-sanspleur'
 
+
+module AModule
+	def long_loop
+		(1..1000000).each do |i|
+			AClass.short_loop
+		end
+	end
+end
+
 class AClass
+
+	include AModule
+
 	def self.wait_a_little_bit
-		#sleep 0.0001
 		a=1
 		b = 1/2
 	end
@@ -14,17 +25,14 @@ class AClass
 		end
 	end
 
-	def self.long_loop
-		(1..1000000).each do |i|
-			short_loop
-		end
-	end
 end
+
 
 class SansPleurTest < Test::Unit::TestCase
   def test_bonjour
-    RubySanspleur.start_sample("pouet", 1000, "/tmp/glu.rubytrace", nil)
-    AClass.long_loop
+    RubySanspleur.start_sample("pouet", 100000, "/tmp/glu.rubytrace", nil)
+    a = AClass.new
+    a.long_loop
    	RubySanspleur.stop_sample("")
   end
 end
