@@ -75,7 +75,7 @@ module RubySanspleur
       self.delegate_with_env_or_execute(:should_allow_sampling_request_for_environment, env) do
         computed_signature =  OpenSSL::HMAC.hexdigest('sha1', self.secret_key, self.original_request_uri(env))
         transmitted_signature = env["HTTP_X_RUBY_SANSPLEUR_SIGNATURE"]
-        computed_signature && (computed_signature.casecmp(transmitted_signature) == 0)        
+        transmitted_signature && computed_signature && (computed_signature.casecmp(transmitted_signature) == 0)        
       end
     end
 
