@@ -91,8 +91,9 @@ static void add_line_to_trace(void* anonymous_trace, const char* file_name, int 
     if (class_name && !st_lookup(class_name_table, (st_data_t)class_name, (st_data_t *)&new_line->class_name)) {
         class_name = sanspleur_copy_string(class_name);
         st_insert(class_name_table, (st_data_t)class_name, (st_data_t)class_name);
-        new_line->class_name = function_name;
-    }    
+        new_line->class_name = class_name;
+    }
+      
 }
 
 #ifdef RUBY_VM
