@@ -9,8 +9,8 @@ rescue Exception
 end
 
 
-require "ruby-sanspleur/errors"
-require "ruby-sanspleur/middleware"
+require "#{me}/ruby-sanspleur/errors"
+require "#{me}/ruby-sanspleur/middleware"
 
 begin
 	require "ruby-sanspleur/railtie" if defined?(Rails) 

@@ -30,6 +30,7 @@
 #define CURRENT_THREAD (rb_thread_current())
 #define MAIN_THREAD (rb_thread_main())
 
+
 #else /* ruby 1.8*/
 
 #include <st.h>
@@ -43,6 +44,33 @@
 #define MAIN_THREAD (rb_thread_main())
  
 #endif /* RUBY_VM */
+
+
+#if HAVE_RB_THREAD_ADD_EVENT_HOOK
+extern "C" {
+    void rb_thread_add_event_hook(VALUE thval, rb_event_hook_func_t func, rb_event_flag_t events, VALUE data);
+    int rb_thread_remove_event_hook(VALUE thval, rb_event_hook_func_t func);
+}
+#endif
+
+void add_event_hook_for_thread(VALUE thval, rb_event_hook_func_t func, rb_event_flag_t events, VALUE data)
+{
+#if HAVE_RB_THREAD_ADD_EVENT_HOOK
+    rb_thread_add_event_hook(thval, func, events, data);
+#else 
+    rb_add_event_hook(func, events, data);
+#endif
+}
+
+void remove_event_hook_for_thread(VALUE thval, rb_event_hook_func_t func)
+{
+#if HAVE_RB_THREAD_ADD_EVENT_HOOK
+    rb_thread_remove_event_hook(thval, func);
+#else 
+    rb_remove_event_hook(func);
+#endif
+}
+
 
 
 static THREAD_TYPE thread_to_sample = NULL;
@@ -140,7 +168,7 @@ static void sanspleur_install_sampler_hook()
 {
     DEBUG_PRINTF("installing event hook\n");
 #ifdef RUBY_VM
-    rb_add_event_hook(sanspleur_sampler_event_hook, RUBY_EVENT_RETURN  | RUBY_EVENT_C_RETURN, Qnil); 
+    add_event_hook_for_thread(thread_to_sample, sanspleur_sampler_event_hook, RUBY_EVENT_RETURN  | RUBY_EVENT_C_RETURN, Qnil); 
 #else
     rb_add_event_hook(sanspleur_sampler_event_hook,
         RUBY_EVENT_CALL   | RUBY_EVENT_C_CALL     |
@@ -162,7 +190,11 @@ static void sanspleur_remove_sampler_hook()
 #endif
 
     /* Now unregister from event   */
+#ifdef RUBY_VM
+    remove_event_hook_for_thread(thread_to_sample, sanspleur_sampler_event_hook);
+#else
     rb_remove_event_hook(sanspleur_sampler_event_hook);
+#endif
 }
 
 extern "C" {
