@@ -24,6 +24,7 @@ $CFLAGS = ($CFLAGS || "") + " -Wimplicit -Werror"
 
 have_header("sys/times.h")
 have_func("rb_thread_add_event_hook", "ruby.h")
+have_func("timer_settime", "time.h")
 have_library("stdc++")
 
 add_define("RUBY_VERSION", RUBY_VERSION.gsub('.', ''))

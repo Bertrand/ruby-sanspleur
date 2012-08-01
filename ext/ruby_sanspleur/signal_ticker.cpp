@@ -10,17 +10,40 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 #include <sys/time.h>
-
 #include <signal.h> 
 #include <stdio.h> 
 #include <string.h> 
 
 #include "ruby_backtrace_walker.h"
 
-#define SIGNAL SIGALRM
-#define ITIMER ITIMER_REAL
- 
+ #if HAVE_TIMER_SETTIME
+ #define USE_RT 1
+ #else
+ #define USE_RT 0
+ #endif
+
+
+#if USE_RT
+
+#define SIGNAL_NUMBER SIGRTMIN
+#define CLOCK_ID CLOCK_MONOTONIC
+
+#else
+
+// #define TIMER ITIMER_PROF
+// #define SIGNAL SIGPROF
+
+// #define TIMER ITIMER_VIRTUAL
+// #define SIGNAL SIGVTALRM
+
+#define TIMER_NUMBER ITIMER_REAL
+#define SIGNAL_NUMBER SIGALRM
+
+#endif
+
+
 
 
 double global_thread_time = 0;
@@ -76,44 +99,80 @@ long long SignalTicker::total_tick_count()
 }
 
 void SignalTicker::start()
-{
-	struct sigaction sa;
-	struct itimerval timer;
-	
+{	
 	_thread_running = 1;
 	
 	global_thread_time = 0;
 	global_microseconds_interval = _microseconds_interval;
 	_anchor_time = global_thread_time;
 
+#if USE_RT
+
+    struct sigevent evt;
+    timer_t timer_id; 
+
+    evt.sigev_notify = SIGEV_SIGNAL;
+    evt.sigev_signo = SIGNAL_NUMBER;
+    if (timer_create(CLOCK_ID, &evt, &timer_id) !=0) {
+        fprintf(stderr, "unable to create timer\n");
+    }
+
+    struct itimerspec timerspec;
+    timerspec.it_interval.tv_sec = 0;
+    timerspec.it_interval.tv_nsec = _microseconds_interval;
+    timerspec.it_value.tv_sec = 0;
+    timerspec.it_value.tv_nsec = _microseconds_interval;  
+
+    if (timer_settime(timer_id, 0, &timerspec, NULL) != 0) {
+        fprintf(stderr, "unable to set time on timer\n");
+    };
+
+#else
+
+    struct itimerval timerspec;
+    timerspec.it_interval.tv_sec = 0;
+    timerspec.it_interval.tv_usec = _microseconds_interval * 1000;
+    timerspec.it_value.tv_sec = 0;
+    timerspec.it_value.tv_usec = _microseconds_interval * 1000;
+    setitimer(TIMER_NUMBER, &timerspec, NULL);
+
+#endif
+
+    struct sigaction sa;    
 	memset (&sa, 0, sizeof (sa));
+    
+    sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
 	sa.sa_handler = &timer_handler;
-	sigaction (SIGNAL, &sa, NULL);
+    if (sigaction (SIGNAL_NUMBER, &sa, NULL) != 0) {
+        fprintf(stderr, "Failed to register timer signal handler.\n");
+        exit(-1);
+    }
 
-	timer.it_value.tv_sec = 0;
-	timer.it_value.tv_usec = _microseconds_interval;
-	timer.it_interval.tv_sec = 0;
-	timer.it_interval.tv_usec = _microseconds_interval;
-	setitimer(ITIMER, &timer, NULL);
 }
 
 void SignalTicker::stop()
 {
-	struct sigaction sa;
-	struct itimerval timer;
 	
 	_thread_running = 0;
-	
+
+#if USE_RT
+
+#else
+
+	struct itimerval timer;
 	timer.it_value.tv_sec = 0;
 	timer.it_value.tv_usec = 0;
 	timer.it_interval.tv_sec = 0;
 	timer.it_interval.tv_usec = 0;
-	setitimer(ITIMER, &timer, NULL);
+	setitimer(TIMER_NUMBER, &timer, NULL);
 
+#endif
+
+	struct sigaction sa;
 	memset (&sa, 0, sizeof (sa));
 	sa.sa_handler = NULL;
-	sigaction (SIGNAL, &sa, NULL);
+	sigaction (SIGNAL_NUMBER, &sa, NULL);
 }
 
 void SignalTicker::pause()
