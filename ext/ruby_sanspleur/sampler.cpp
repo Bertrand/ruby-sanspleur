@@ -268,9 +268,14 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE microseconds_interval,
     }
     start_sample_date = DumperFile::get_current_time();
     if (!ticker) {
-        //ticker = new ThreadTicker(usleep_int);
-        //ticker = new SignalTicker(usleep_int);
+        // old test
+        // ticker = new ThreadTicker(usleep_int);
+
+#if HAVE_RT
+        ticker = new SignalTicker(usleep_int);
+#else 
         ticker = new ClockTicker(usleep_int);
+#endif
         ticker->start();
     } else {
         ticker->reset();

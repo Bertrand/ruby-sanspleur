@@ -11,6 +11,12 @@
 
 #define safe_string(__s__) (__s__ ? __s__ : "")
 
+#if HAVE_TIMER_SETTIME
+ #define HAVE_RT 1
+ #else
+ #define HAVE_RT 0
+ #endif
+
 
 #ifdef __cplusplus 
 extern "C" {

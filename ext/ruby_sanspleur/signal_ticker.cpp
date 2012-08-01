@@ -18,7 +18,7 @@
 
 #include "ruby_backtrace_walker.h"
 
- #if HAVE_TIMER_SETTIME
+ #if HAVE_RT
  #define USE_RT 1
  #else
  #define USE_RT 0
@@ -106,6 +106,17 @@ void SignalTicker::start()
 	global_microseconds_interval = _microseconds_interval;
 	_anchor_time = global_thread_time;
 
+    struct sigaction sa;    
+	memset (&sa, 0, sizeof (sa));
+    
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+	sa.sa_handler = &timer_handler;
+    if (sigaction (SIGNAL_NUMBER, &sa, NULL) != 0) {
+        fprintf(stderr, "Failed to register timer signal handler.\n");
+        exit(-1);
+    }
+
 #if USE_RT
 
     struct sigevent evt;
@@ -137,17 +148,6 @@ void SignalTicker::start()
     setitimer(TIMER_NUMBER, &timerspec, NULL);
 
 #endif
-
-    struct sigaction sa;    
-	memset (&sa, 0, sizeof (sa));
-    
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-	sa.sa_handler = &timer_handler;
-    if (sigaction (SIGNAL_NUMBER, &sa, NULL) != 0) {
-        fprintf(stderr, "Failed to register timer signal handler.\n");
-        exit(-1);
-    }
 
 }
 
