@@ -53,7 +53,7 @@ module RubySanspleur
             @app.call(env) 
           end
         rescue => e
-          logger.warn { "got an exception while sampling #{e}" } if logger
+          logger.warn { "got an exception while sampling: #{e}" } if logger
         ensure
           # there are situations where we cannot catch the exception, but ensure is always called...
           RubySanspleur.stop_sample(nil)
@@ -73,6 +73,7 @@ module RubySanspleur
 
     def request_authorized?(env)
       self.delegate_with_env_or_execute(:should_allow_sampling_request_for_environment, env) do
+        logger.error { "original url : " + original_request_uri(env) }
         computed_signature =  OpenSSL::HMAC.hexdigest('sha1', self.secret_key, self.original_request_uri(env))
         transmitted_signature = env["HTTP_X_RUBY_SANSPLEUR_SIGNATURE"]
         transmitted_signature && computed_signature && (computed_signature.casecmp(transmitted_signature) == 0)        
