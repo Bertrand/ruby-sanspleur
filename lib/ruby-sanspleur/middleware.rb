@@ -9,12 +9,15 @@ module RubySanspleur
       @app = app
     end
     
+    def logger
+        logger = Rails.logger
+    end
+
     def call(env)
       sampling_enabled = false
 
       # quickly discard normal requests
       if env["QUERY_STRING"].index('ruby_sanspleur') then 
-        logger = Rails.logger
 
         logger.info { "sampling request #{env["PATH_INFO"]}" } if logger
         query_hash = Rack::Utils::parse_query(env["QUERY_STRING"]).symbolize_keys! rescue nil
@@ -73,7 +76,7 @@ module RubySanspleur
 
     def request_authorized?(env)
       self.delegate_with_env_or_execute(:should_allow_sampling_request_for_environment, env) do
-        logger.error { "original url : " + original_request_uri(env) }
+        logger.info { "original url : " + original_request_uri(env) }
         computed_signature =  OpenSSL::HMAC.hexdigest('sha1', self.secret_key, self.original_request_uri(env))
         transmitted_signature = env["HTTP_X_RUBY_SANSPLEUR_SIGNATURE"]
         transmitted_signature && computed_signature && (computed_signature.casecmp(transmitted_signature) == 0)        
@@ -90,8 +93,8 @@ module RubySanspleur
       self.delegate_with_env_or_execute(:orignal_uri_for_environment, env) do
         url_scheme = env["rack.url_scheme"]
         host_name = env["HTTP_HOST"] || env["SERVER_NAME"] # fallback to SERVER_NAME will not work if there is an explicit HTTP port in the request
-        full_path = env["ORIGINAL_FULLPATH"] # normally put by rails to store the original url before middlewares start butchering uri
-        full_path ||= env["PATH_INFO"] + (env["QUERY_STRING"].empty? ? "" : ("?" + env["QUERY_STRING"]))
+        query_string = env["QUERY_STRING"] && env["QUERY_STRING"].split('&').sort.join('&') # sort query string parameters without touching to encoding.
+        full_path = env["PATH_INFO"] + (query_string.empty? ? "" : ("?" + query_string))
         url_scheme + "://" + host_name + full_path
       end
     end
@@ -119,7 +122,7 @@ module RubySanspleur
 
     def _raw_value_for_config_key(key)
       value = Rails.application.config.ruby_sanspleur[key]
-      Rails.logger.info "config for key #{key} is #{value}"
+      logger.debug "config for key #{key} is #{value}"
       value
     end
 
