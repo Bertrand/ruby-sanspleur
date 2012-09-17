@@ -10,7 +10,7 @@ module RubySanspleur
     end
     
     def logger
-        logger = Rails.logger
+      logger = Rails.logger
     end
 
     def call(env)
@@ -19,7 +19,7 @@ module RubySanspleur
       # quickly discard normal requests
       if env["QUERY_STRING"].index('ruby_sanspleur') then 
 
-        logger.info { "sampling request #{env["PATH_INFO"]}" } if logger
+        self.logger.info { "sampling request #{env["PATH_INFO"]}" } if self.logger
         query_hash = Rack::Utils::parse_query(env["QUERY_STRING"]).symbolize_keys! rescue nil
 
         if (query_hash && TRUE_VALUES.include?(query_hash[:ruby_sanspleur])) then 
@@ -49,24 +49,24 @@ module RubySanspleur
       if sampling_enabled
         begin
           if timeout
-            logger.debug { "sampling with timeout #{timeout}" } if logger
+            self.logger.debug { "sampling with timeout #{timeout}" } if self.logger
             Timeout.timeout(timeout)  { @app.call(env) }
           else
-            logger.debug { "sampling without timeout" } if logger
+            self.logger.debug { "sampling without timeout" } if self.logger
             @app.call(env) 
           end
         rescue => e
-          logger.warn { "got an exception while sampling: #{e}" } if logger
+          self.logger.warn { "got an exception while sampling: #{e}" } if self.logger
         ensure
           # there are situations where we cannot catch the exception, but ensure is always called...
           RubySanspleur.stop_sample(nil)
         end
 
-        logger.debug { "finalize sampling" } if logger
+        self.logger.debug { "finalize sampling" } if self.logger
         response = ::File.open(tracefile_path, "r")
         headers = {"Cache-Control" => "no-cache", "Content-Type" => "application/rubytrace", "Content-Disposition" => 'attachment; filename="profile.rubytrace"'}
         status = 200
-        logger.debug { "sampling done" } if logger
+        self.logger.debug { "sampling done" } if self.logger
         
         [ status, headers, response ]
       else
@@ -76,7 +76,7 @@ module RubySanspleur
 
     def request_authorized?(env)
       self.delegate_with_env_or_execute(:should_allow_sampling_request_for_environment, env) do
-        logger.info { "original url : " + original_request_uri(env) }
+        self.logger.info { "original url : " + original_request_uri(env) } if self.logger
         computed_signature =  OpenSSL::HMAC.hexdigest('sha1', self.secret_key, self.original_request_uri(env))
         transmitted_signature = env["HTTP_X_RUBY_SANSPLEUR_SIGNATURE"]
         transmitted_signature && computed_signature && (computed_signature.casecmp(transmitted_signature) == 0)        
@@ -122,7 +122,7 @@ module RubySanspleur
 
     def _raw_value_for_config_key(key)
       value = Rails.application.config.ruby_sanspleur[key]
-      logger.debug "config for key #{key} is #{value}"
+      self.logger.debug { "config for key #{key} is #{value}" } if self.logger
       value
     end
 
