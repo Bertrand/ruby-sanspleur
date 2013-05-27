@@ -4,7 +4,7 @@ require 'ruby-sanspleur'
 
 module AModule
 	def long_loop
-		(1..1000000).each do |i|
+		(1..100000).each do |i|
 			AClass.short_loop
 		end
 	end
@@ -34,6 +34,5 @@ class SansPleurTest < Test::Unit::TestCase
     a = AClass.new
     a.long_loop
    	RubySanspleur.stop_sample("")
-   	sleep(10)
   end
 end

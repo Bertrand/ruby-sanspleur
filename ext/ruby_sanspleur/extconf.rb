@@ -20,18 +20,28 @@ end
 # force mkmf to detect absence a of a symbol at link time. Without this, gcc emits a warning 
 # which is kindly ignored by mkmf. This fixes detection of rb_thread_add_event_hook.
 saved_cflags = $CFLAGS 
-$CFLAGS = ($CFLAGS || "") + " -Wimplicit -Werror"
+if RUBY_VERSION < "2.0.0" then
+  $CFLAGS = ($CFLAGS || "") + " -Wimplicit -Werror"
+end
 
 have_header("sys/times.h")
-have_func("rb_thread_add_event_hook", "ruby.h")
+
+if RUBY_VERSION < "2.0.0" then
+  have_func("rb_thread_add_event_hook", "ruby.h")
+else
+  have_func("rb_thread_add_event_hook", "ruby/debug.h")
+end
+
 have_func("timer_settime", "time.h")
 have_library("stdc++")
 
 add_define("RUBY_VERSION", RUBY_VERSION.gsub('.', ''))
 cc_command("g++")
-# $CFLAGS = "-fPIC -g $(cflags) -O0"
-# $CFLAGS = "-g -O0"
 
 $CFLAGS = saved_cflags
+
+# Use this to debug 
+# $CPPFLAGS = "-fPIC -ggdb3 -O0"
+
 create_makefile("ruby_sanspleur")
 

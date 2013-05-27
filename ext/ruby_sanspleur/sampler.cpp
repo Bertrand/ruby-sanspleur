@@ -30,6 +30,9 @@
 #define CURRENT_THREAD (rb_thread_current())
 #define MAIN_THREAD (rb_thread_main())
 
+#if RUBY_API_VERSION_MAJOR >= 2
+#include <ruby/debug.h>
+#endif 
 
 #else /* ruby 1.8*/
 
