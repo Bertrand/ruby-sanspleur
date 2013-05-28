@@ -36,10 +36,11 @@ double DumperFile::get_current_time()
 	return stop_date.tv_sec + (stop_date.tv_usec / 1000000.0);
 }
 
-DumperFile::DumperFile(const char *filename)
+DumperFile::DumperFile(const char *filename, StackTraceSample* sample)
 {
 	_file = NULL;
 	_filename = sanspleur_copy_string(filename);
+	_sample = sample;
 }
 
 DumperFile::~DumperFile()
@@ -89,9 +90,37 @@ void DumperFile::write_info_header(const InfoHeader *info_header)
 	}
 }
 
+static void _write_symbol_index_entry(void* closure, ID symbol_id, const char* symbol)
+{
+	DumperFile* file = (DumperFile*)closure;
+	file->write_symbol_index_entry(symbol_id, symbol);
+}
+
+void DumperFile::write_symbol_index_entry(ID symbol_id, const char* symbol)
+{
+	const char* safe_symbol = symbol ? symbol : "";
+	write_string_in_file("%lld\t%s\n", symbol_id, safe_symbol);
+}
+
+void DumperFile::write_file_path_index()
+{
+	write_string_in_file("\n-- File Index --\n");
+	_sample->sample_file_paths_each(_write_symbol_index_entry, this);
+}
+
+void DumperFile::write_class_name_index()
+{
+	write_string_in_file("\n-- Class Index --\n");
+	_sample->sample_class_each(_write_symbol_index_entry, this);
+}
+
+
 void DumperFile::write_footer(double duration, long long tick_count, const char *extra_info)
 {
 	if (_file) {
+		write_file_path_index();
+		write_class_name_index();
+
 		struct timeval stop_date;
 		
 		gettimeofday(&stop_date, NULL);
@@ -135,26 +164,15 @@ void DumperFile::write_stack_line_in_file(StackLine *line, StackTrace *trace, co
 {
 	// thread id, time, file, stack depth, type, ns, function, symbol
 	write_string_in_file(
-	"1\t" // 0: thread id
-	"%d\t" // 1: tick
-	"%s\t" // 2: file
-	"%d\t" // 3: line number
-	"%p\t" // 4: type
-	"%p\t" // 5: function id
-	"%s\t" // 6: function name
-	"%s\t" // 7: call method
-	"%f\t" // 8: sample duration
-	"%s\t" // 9: class name
+	"%lld\t" // file id
+	"%lld\t" // line number
+	"%lld\t" // class id
+	"%lld\t" // function id
 	"\n%s", // suffix
-	trace->sample_tick_count, // 1: time
-	line->file_name, // 2: file
-	line->line_number, // 3: line number
-	(void *)trace->ruby_event, // 4: type
-	(void *)line->function_id, // 5: function id
-	line->function_name, // 6: function name
-	trace->call_method, // 7: call method
-	trace->sample_duration, // 8: sample duration
-	line->class_name, // 9: class name
+	line->sample_local_file_path_id,
+	line->line_number,
+	line->sample_local_class_id,
+	line->sample_local_function_id,
 	suffix
 	);
 }

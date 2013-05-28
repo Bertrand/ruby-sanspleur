@@ -41,7 +41,7 @@ cc_command("g++")
 $CFLAGS = saved_cflags
 
 # Use this to debug 
-# $CPPFLAGS = "-fPIC -ggdb3 -O0"
+$CPPFLAGS = "-fPIC -ggdb -O0"
 
 create_makefile("ruby_sanspleur")
 

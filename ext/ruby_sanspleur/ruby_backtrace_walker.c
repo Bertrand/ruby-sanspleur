@@ -50,7 +50,7 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
     while (cfp < cfp_limit) {
         const char* class_name = NULL; 
         ID function_id = 0; 
-        VALUE klass = NULL;
+        VALUE klass = 0;
         const char* file_name = NULL; 
         int line_number = -1; 
         int no_pos = -1;
@@ -65,7 +65,7 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
         while (iseq) {
             if (RUBY_VM_IFUNC_P(iseq)) {
                 CONST_ID(function_id, "<ifunc>");
-                klass = NULL;
+                klass = 0;
                 break;
             }
             klass = iseq->klass;
@@ -97,6 +97,7 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
         }
         if (klass && !class_name) {
             class_name = rb_class2name(klass); 
+            //class_name = NULL;
         }
 
         if (no_pos < 0) {

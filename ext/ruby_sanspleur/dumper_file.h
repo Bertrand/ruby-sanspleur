@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <sys/time.h>
 
+#include "ruby_sanspleur.h"
+
 class StackTraceSample;
 class InfoHeader;
 class StackLine;
@@ -18,6 +20,7 @@ class StackTrace;
 class DumperFile
 {
 	protected:
+		StackTraceSample* _sample; 
 		double _start_time;
 #ifdef USE_FOPEN
 		FILE *_file;
@@ -39,11 +42,16 @@ class DumperFile
 		static double get_current_time();
 		static const char *default_tmp_filename();
 		
-		DumperFile(const char *filename);
+		DumperFile(const char *filename, StackTraceSample* sample);
 		~DumperFile();
 		
 		void open_file_with_header(const InfoHeader *header);
 		void write_stack_trace_sample(StackTraceSample* sample);
 		void close_file_with_info(double duration, long long tick_count, const char *extra_info);
 		void write_stack_trace(StackTrace *trace);
+
+		void write_symbol_index_entry(ID symbol_id, const char* symbol);
+		void write_file_path_index();
+		void write_class_name_index();
+
 };

@@ -7,6 +7,7 @@
 
 #include "info_header.h"
 #include "sampler.h"
+#include "ruby_sanspleur.h"
 
 InfoHeader::InfoHeader(const char *url_string, long usleep_int, const char *start_date, const char *extra_info_string)
 {

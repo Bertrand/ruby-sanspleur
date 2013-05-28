@@ -23,4 +23,15 @@ typedef rb_event_t rb_event_flag_t;
 
 #include "version.h"
 
+
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
+char *sanspleur_copy_string(const char *string);
+
+#ifdef __cplusplus 
+}
+#endif
+
 #endif

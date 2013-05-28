@@ -36,7 +36,6 @@ VALUE sanspleur_sample(VALUE self, VALUE url, VALUE microseconds_interval, VALUE
 VALUE sanspleur_save_current_sample(VALUE self, VALUE filename, VALUE in_thread);
 VALUE sanspleur_cancel_current_sample(VALUE self);
 
-char *sanspleur_copy_string(const char *string);
 double sanspleur_get_current_time();
 void sanspleur_init();
 

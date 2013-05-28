@@ -101,14 +101,9 @@ static void add_line_to_trace(void* anonymous_trace, const char* file_name, int 
     DEBUG_PRINTF("New backtrace line : %s:%d %s::%s\n", safe_string(file_name), line_number, safe_string(class_name), safe_string(function_name));
 
     StackTrace *trace = (StackTrace*)anonymous_trace;
-    StackLine *new_line = new StackLine();
-    
-    new_line->next_stack_line = trace->stack_line;
-    trace->stack_line = new_line;
+    trace->push_stack_frame(file_name, line_number, class_name, function_id);
 
-    new_line->line_number = line_number;
-    new_line->function_id = function_id;
-
+    /*
     if (file_name && !st_lookup(file_name_table, (st_data_t)file_name, (st_data_t *)&new_line->file_name)) {
         file_name = sanspleur_copy_string(file_name);
         st_insert(file_name_table, (st_data_t)file_name, (st_data_t)file_name);
@@ -124,6 +119,7 @@ static void add_line_to_trace(void* anonymous_trace, const char* file_name, int 
         st_insert(class_name_table, (st_data_t)class_name, (st_data_t)class_name);
         new_line->class_name = class_name;
     }
+    */
       
 }
 
@@ -144,7 +140,7 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 
     if (tick_count != 0) {
         DEBUG_PRINTF("tick\n");
-        StackTrace *new_trace = new StackTrace();
+        StackTrace *new_trace = sample->new_stack_trace();
         new_trace->sample_duration = ticker->time_since_anchor();
         new_trace->sample_tick_count = tick_count;
         new_trace->ruby_event = event;
@@ -152,15 +148,15 @@ static void sanspleur_sampler_event_hook(rb_event_flag_t event, NODE *node, VALU
 
         ruby_backtrace_each(add_line_to_trace, (void*)new_trace); 
 
-        if (sample) {
-            sample->add_new_stack_trace(new_trace);
-        }
         if (dumper) {
             dumper->write_stack_trace(new_trace);
-        }
-        if (!sample) {
             delete new_trace;
+        } else {
+            // only store trace if we don't dump to file
+            if (sample) sample->add_new_stack_trace(new_trace);
+            else delete new_trace;
         }
+
         ticker->sync_anchor();
         DEBUG_PRINTF("------------\n");
 
@@ -202,19 +198,7 @@ static void sanspleur_remove_sampler_hook()
 
 extern "C" {
 
-char *sanspleur_copy_string(const char *string)
-{
-    long length;
-    char *result = NULL;
-    
-    if (string) {
-        length = strlen(string);
-        result = (char *)malloc(length + 1);
-        strncpy(result, string, length);
-        result[length] = 0;
-    }
-    return result;
-}
+
 
 double sanspleur_get_current_time()
 {
@@ -263,17 +247,14 @@ VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE microseconds_interval,
     info_header = new InfoHeader(url_string, usleep_int, start_date, extra_info_string);
     free((void *)start_date);
     
+    sample = new StackTraceSample(info_header);
+
     if (file_name != Qnil) {
-        dumper = new DumperFile(StringValueCStr(file_name));
+        dumper = new DumperFile(StringValueCStr(file_name), sample);
         dumper->open_file_with_header(info_header);
-    } else {
-        sample = new StackTraceSample(info_header);
-    }
+    } 
     start_sample_date = DumperFile::get_current_time();
     if (!ticker) {
-        // old test
-        // ticker = new ThreadTicker(usleep_int);
-
 #if HAVE_RT
         ticker = new SignalTicker(usleep_int);
 #else 
@@ -346,7 +327,7 @@ static void write_sample_to_disk(StackTraceSample *sample, char *filename, doubl
 {
     DumperFile *dumper;
     
-    dumper = new DumperFile(filename);
+    dumper = new DumperFile(filename, sample);
     dumper->open_file_with_header(sample->get_info_header());
     dumper->write_stack_trace_sample(sample);
     dumper->close_file_with_info(duration, sample->get_total_tick_count(), sample->get_extra_ending_info());

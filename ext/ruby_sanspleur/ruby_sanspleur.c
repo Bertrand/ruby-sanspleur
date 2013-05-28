@@ -26,3 +26,19 @@ void Init_ruby_sanspleur()
 	
 	sanspleur_init();
 }
+
+
+
+char *sanspleur_copy_string(const char *string)
+{
+    long length;
+    char *result = NULL;
+    
+    if (string) {
+        length = strlen(string);
+        result = (char *)malloc(length + 1);
+        strncpy(result, string, length);
+        result[length] = 0;
+    }
+    return result;
+}
