@@ -87,5 +87,6 @@ class StackTraceSample {
 
 		void sample_file_paths_each(SymbolIteratorFunction* iter, void* closure);
 		void sample_class_each(SymbolIteratorFunction* iter, void* closure);
+		void sample_function_each(SymbolIteratorFunction* iter, void* closure);
 
 };

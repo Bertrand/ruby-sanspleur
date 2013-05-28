@@ -53,5 +53,6 @@ class DumperFile
 		void write_symbol_index_entry(ID symbol_id, const char* symbol);
 		void write_file_path_index();
 		void write_class_name_index();
+		void write_function_name_index();
 
 };

@@ -241,6 +241,18 @@ each_string(st_data_t key, st_data_t value, st_data_t data)
   return ST_CONTINUE;
 }
 
+static int
+each_function_id(st_data_t key, st_data_t value, st_data_t data)
+{
+  ID local_id = (ID)value; 
+  ID function_id = (ID)key; 
+  const char* function_name = rb_id2name(function_id);
+  _SymbolIteratorInfo* symbol_iterator_info = (_SymbolIteratorInfo*)data;
+
+  symbol_iterator_info->iter(symbol_iterator_info->closure, local_id, function_name);
+  return ST_CONTINUE;
+}
+
 void StackTraceSample::sample_file_paths_each(SymbolIteratorFunction* iter, void* closure)
 {
   void* target_info[2];
@@ -263,3 +275,13 @@ void StackTraceSample::sample_class_each(SymbolIteratorFunction* iter, void* clo
   st_foreach(_local_class_ids, (int (*)(...))each_string, (st_data_t)&symbol_iterator_info);
 }
 
+void StackTraceSample::sample_function_each(SymbolIteratorFunction* iter, void* closure)
+{
+  void* target_info[2];
+  target_info[0] = (void*)iter;
+  target_info[1] = closure;
+  _SymbolIteratorInfo symbol_iterator_info;
+  symbol_iterator_info.iter = iter;
+  symbol_iterator_info.closure = closure;
+  st_foreach(_local_function_ids, (int (*)(...))each_function_id, (st_data_t)&symbol_iterator_info);
+}

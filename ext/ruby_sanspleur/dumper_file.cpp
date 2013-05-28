@@ -114,12 +114,18 @@ void DumperFile::write_class_name_index()
 	_sample->sample_class_each(_write_symbol_index_entry, this);
 }
 
+void DumperFile::write_function_name_index()
+{
+	write_string_in_file("\n-- Function Index --\n");
+	_sample->sample_function_each(_write_symbol_index_entry, this);
+}
 
 void DumperFile::write_footer(double duration, long long tick_count, const char *extra_info)
 {
 	if (_file) {
 		write_file_path_index();
 		write_class_name_index();
+		write_function_name_index();
 
 		struct timeval stop_date;
 		
