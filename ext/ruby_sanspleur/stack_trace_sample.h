@@ -40,6 +40,7 @@ class StackTrace {
 		StackTrace *next_stack_trace;
 	  double sample_duration;
 		long long sample_tick_count;
+		int depth;
 		
 		int ruby_event;
 		const char *call_method;

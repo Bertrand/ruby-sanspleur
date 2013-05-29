@@ -57,6 +57,7 @@ StackTrace::StackTrace()
   stack_line = NULL;
   call_method = NULL;
   next_stack_trace = NULL;
+  depth = 0;
 }
 
 StackTrace::~StackTrace()
@@ -74,6 +75,7 @@ void StackTrace::push_stack_frame(const char* file_path, unsigned long long line
   new_line->sample_local_function_id = sample->local_function_id_for_id(function_id);
   new_line->sample_local_class_id = sample->local_class_id_for_class_name(class_name);
   new_line->sample_local_file_path_id = sample->local_file_id_for_path(file_path);
+  ++depth;
 }
 
 
@@ -192,6 +194,10 @@ const InfoHeader *StackTraceSample::get_info_header()
   return _info_header;
 }
 
+
+
+// Creation and access to symbol indexes 
+
 ID StackTraceSample::local_function_id_for_id(ID function_id)
 {
   ID local_id = 0; // 0 means 'unattributed'. 
@@ -224,6 +230,9 @@ ID StackTraceSample::local_file_id_for_path(const char* file_path)
   return local_id;
 }
 
+
+
+// symbol indexes iterators (file paths, classes, functions)
 
 typedef struct {
   SymbolIteratorFunction* iter;

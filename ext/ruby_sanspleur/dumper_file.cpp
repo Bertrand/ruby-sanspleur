@@ -83,10 +83,11 @@ void DumperFile::write_info_header(const InfoHeader *info_header)
 {
 	if (_file) {
 		if (info_header->get_extra_info_string()) {
-	        write_string_in_file("%s\n%s\n%d\n%s\n%s\n--\n", RUBY_SANSPLEUR_VERSION, info_header->get_url_string(), info_header->get_usleep_int(), info_header->get_start_date(), info_header->get_extra_info_string());
+	        write_string_in_file("%s\t%s\t%d\t%s\t%s\t\n", RUBY_SANSPLEUR_VERSION, info_header->get_url_string(), info_header->get_usleep_int(), info_header->get_start_date(), info_header->get_extra_info_string());
 		} else {
-	        write_string_in_file("%s\n%s\n%d\n%s\n--\n", RUBY_SANSPLEUR_VERSION, info_header->get_url_string(), info_header->get_usleep_int(), info_header->get_start_date());
+	        write_string_in_file("%s\t%s\t%d\t%s\t\n", RUBY_SANSPLEUR_VERSION, info_header->get_url_string(), info_header->get_usleep_int(), info_header->get_start_date());
 		}
+		write_string_in_file("-- Traces --\n");
 	}
 }
 
@@ -104,19 +105,19 @@ void DumperFile::write_symbol_index_entry(ID symbol_id, const char* symbol)
 
 void DumperFile::write_file_path_index()
 {
-	write_string_in_file("\n-- File Index --\n");
+	write_string_in_file("-- File Index --\n");
 	_sample->sample_file_paths_each(_write_symbol_index_entry, this);
 }
 
 void DumperFile::write_class_name_index()
 {
-	write_string_in_file("\n-- Class Index --\n");
+	write_string_in_file("-- Class Index --\n");
 	_sample->sample_class_each(_write_symbol_index_entry, this);
 }
 
 void DumperFile::write_function_name_index()
 {
-	write_string_in_file("\n-- Function Index --\n");
+	write_string_in_file("-- Function Index --\n");
 	_sample->sample_function_each(_write_symbol_index_entry, this);
 }
 
@@ -130,10 +131,11 @@ void DumperFile::write_footer(double duration, long long tick_count, const char 
 		struct timeval stop_date;
 		
 		gettimeofday(&stop_date, NULL);
+		write_string_in_file("-- Footer --\n");
 		if (extra_info) {
-			write_string_in_file("\n--\n%.2f\n%.2f\n%lld\n%s\n", duration, DumperFile::get_current_time() - _start_time, tick_count, extra_info);
+			write_string_in_file("%.2f\t%.2f\t%lld\t%s\n", duration, DumperFile::get_current_time() - _start_time, tick_count, extra_info);
 		} else {
-			write_string_in_file("\n--\n%.2f\n%.2f\n%lld\n", duration, DumperFile::get_current_time() - _start_time, tick_count);
+			write_string_in_file("%.2f\t%.2f\t%lld\n", duration, DumperFile::get_current_time() - _start_time, tick_count);
 		}
 	}
 }
@@ -157,12 +159,15 @@ void DumperFile::write_stack_trace(StackTrace *trace)
 		StackLine *line;
 		int depth = 0;
 
+		write_string_in_file("%d\t%lld\t%lf\n", trace->depth, trace->sample_tick_count, trace->sample_duration);
 		line = trace->stack_line;
 		while (line) {
 			write_stack_line_in_file(line, trace, line->next_stack_line?"":"\n");
 			line = line->next_stack_line;
 			depth++;
 		}
+
+		// Fixme: check that depth == trace->depth
 	}
 }
 
