@@ -127,15 +127,11 @@ void DumperFile::write_footer(double duration, long long tick_count, const char 
 		write_file_path_index();
 		write_class_name_index();
 		write_function_name_index();
-
-		struct timeval stop_date;
-		
-		gettimeofday(&stop_date, NULL);
 		write_string_in_file("-- Footer --\n");
 		if (extra_info) {
-			write_string_in_file("%.2f\t%.2f\t%lld\t%s\n", duration, DumperFile::get_current_time() - _start_time, tick_count, extra_info);
+			write_string_in_file("%.2f\t%lld\t%s\n", duration, tick_count, extra_info);
 		} else {
-			write_string_in_file("%.2f\t%.2f\t%lld\n", duration, DumperFile::get_current_time() - _start_time, tick_count);
+			write_string_in_file("%.2f\t%lld\n", duration, tick_count);
 		}
 	}
 }
@@ -178,8 +174,8 @@ void DumperFile::write_stack_line_in_file(StackLine *line, StackTrace *trace, co
 	"%lld\t" // file id
 	"%lld\t" // line number
 	"%lld\t" // class id
-	"%lld\t" // function id
-	"\n%s", // suffix
+	"%lld\n" // function id
+	"%s", // suffix
 	line->sample_local_file_path_id,
 	line->line_number,
 	line->sample_local_class_id,
