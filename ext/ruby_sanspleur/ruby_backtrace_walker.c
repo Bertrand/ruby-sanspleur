@@ -15,7 +15,7 @@
 
 #else /* ruby 1.8*/
 
-#include <ruby/env.h>
+#include <env.h>
 #include <st.h>
 #include <node.h>
 typedef rb_event_t rb_event_flag_t;
@@ -90,14 +90,16 @@ void ruby_backtrace_each(sanspleur_backtrace_iter_func* iterator, void* arg)
 
 
         if (cfp->self) {
-            if (TYPE(cfp->self) == RUBY_T_CLASS || TYPE(cfp->self) == RUBY_T_MODULE) {
+            if (TYPE(cfp->self) == RUBY_T_CLASS || TYPE(cfp->self) == RUBY_T_ICLASS) {
+                class_name = rb_class2name(cfp->self);
+            } else if (TYPE(cfp->self) == RUBY_T_MODULE) {
                 VALUE str = rb_obj_as_string(cfp->self);
-                class_name = RSTRING_PTR(str);
+                char* object_description = RSTRING_PTR(str); 
+                class_name = object_description;
             }        
         }
         if (klass && !class_name) {
             class_name = rb_class2name(klass); 
-            //class_name = NULL;
         }
 
         if (no_pos < 0) {

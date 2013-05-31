@@ -24,9 +24,12 @@ extern "C" {
 
 #include <ruby.h>
 
-#ifndef RUBY_VM  /* ruby 1.8*/
+#ifndef RUBY_VM  /* ruby 1.8 */
 #include <env.h>
 #include <node.h>
+#include <st.h> 
+#else /* ruby 1.9 and above */
+#include <ruby/st.h> 
 #endif
 
 VALUE sanspleur_set_current_thread_to_sample(VALUE self);

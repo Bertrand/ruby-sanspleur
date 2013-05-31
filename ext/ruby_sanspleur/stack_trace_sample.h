@@ -6,7 +6,6 @@
  */
 
 #include "sampler.h"
-#include <ruby/st.h> // for hash tables
 
 class InfoHeader;
 class StackTraceSample;

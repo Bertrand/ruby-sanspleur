@@ -18,12 +18,9 @@
 #include "info_header.h"
 #include "ruby_backtrace_walker.h"
 
-#include <ruby/st.h>
-
 
 #ifdef RUBY_VM /* ruby 1.9 and above */
 
-#include <ruby/st.h>
 #include <ruby/intern.h>
 
 #define THREAD_TYPE VALUE
@@ -61,8 +58,13 @@ void add_event_hook_for_thread(VALUE thval, rb_event_hook_func_t func, rb_event_
 #if HAVE_RB_THREAD_ADD_EVENT_HOOK
     rb_thread_add_event_hook(thval, func, events, data);
 #else 
-    rb_add_event_hook(func, events, data);
-#endif
+
+    #ifdef RUBY_VM /* ruby 1.9 and above */
+        rb_add_event_hook(func, events, data);
+    #else 
+        rb_add_event_hook(func, events);
+    #endif /* RUBY_VM */
+#endif /* HAVE_RB_THREAD_ADD_EVENT_HOOK */
 }
 
 void remove_event_hook_for_thread(VALUE thval, rb_event_hook_func_t func)

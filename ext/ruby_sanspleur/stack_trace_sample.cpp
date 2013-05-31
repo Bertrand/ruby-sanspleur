@@ -114,7 +114,7 @@ static int freeHashTableKey(st_data_t key, st_data_t value, st_data_t data)
 
 void freeHashTableKeys(st_table* table) 
 {
-  st_foreach(table, (int (*)(...))freeHashTableKey, NULL);
+  st_foreach(table, (int (*)(...))freeHashTableKey, 0);
 }
 
 StackTraceSample::StackTraceSample(const InfoHeader *info_header)
