@@ -104,6 +104,19 @@ const char *StackTraceSample::current_date_string()
   return buffer;
 }
 
+static int freeHashTableKey(st_data_t key, st_data_t value, st_data_t data)
+{
+  ID local_id = (ID)value; 
+  void* keyAsPtr = (void*)key; 
+  free(keyAsPtr);
+  return ST_CONTINUE;
+}
+
+void freeHashTableKeys(st_table* table) 
+{
+  st_foreach(table, (int (*)(...))freeHashTableKey, NULL);
+}
+
 StackTraceSample::StackTraceSample(const InfoHeader *info_header)
 {
   _info_header = info_header->copy();
@@ -138,6 +151,9 @@ StackTraceSample::~StackTraceSample()
     free((void *)_ending_info);
     _ending_info = NULL;
   }
+
+  freeHashTableKeys(_local_class_ids);
+  freeHashTableKeys(_file_paths_ids);
 
   st_free_table(_local_function_ids);
   st_free_table(_local_class_ids);
