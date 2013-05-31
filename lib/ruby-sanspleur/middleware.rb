@@ -62,7 +62,7 @@ module RubySanspleur
           RubySanspleur.stop_sample(nil)
         end
 
-        self.logger.debug { "finalize sampling" } if self.logger
+        self.logger.debug { "finalize sampling. Sample saved to #{tracefile_path}" } if self.logger
         response = ::File.open(tracefile_path, "r")
         headers = {"Cache-Control" => "no-cache", "Content-Type" => "application/rubytrace", "Content-Disposition" => 'attachment; filename="profile.rubytrace"'}
         status = 200
