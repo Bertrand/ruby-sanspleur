@@ -224,8 +224,9 @@ ID StackTraceSample::local_file_id_for_path(const char* file_path)
 {
   ID local_id = 0; 
   if (file_path && !st_lookup(_file_paths_ids, (st_data_t)file_path, (st_data_t *)&local_id)) {
-    local_id = ++_next_file_path_id;      
-    st_insert(_file_paths_ids, (st_data_t)file_path, (st_data_t)local_id);
+    local_id = ++_next_file_path_id;
+    char* copied_file_path = sanspleur_copy_string(file_path);      
+    st_insert(_file_paths_ids, (st_data_t)copied_file_path, (st_data_t)local_id);
   }
   return local_id;
 }
