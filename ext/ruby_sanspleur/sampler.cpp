@@ -101,26 +101,7 @@ static void add_line_to_trace(void* anonymous_trace, const char* file_name, int 
     DEBUG_PRINTF("New backtrace line : %s:%d %s::%s\n", safe_string(file_name), line_number, safe_string(class_name), safe_string(function_name));
 
     StackTrace *trace = (StackTrace*)anonymous_trace;
-    trace->push_stack_frame(file_name, line_number, class_name, function_id);
-
-    /*
-    if (file_name && !st_lookup(file_name_table, (st_data_t)file_name, (st_data_t *)&new_line->file_name)) {
-        file_name = sanspleur_copy_string(file_name);
-        st_insert(file_name_table, (st_data_t)file_name, (st_data_t)file_name);
-        new_line->file_name = file_name;
-    }
-    if (function_name && !st_lookup(function_name_table, (st_data_t)function_name, (st_data_t *)&new_line->function_name)) {
-        function_name = sanspleur_copy_string(function_name);
-        st_insert(function_name_table, (st_data_t)function_name, (st_data_t)function_name);
-        new_line->function_name = function_name;
-    }
-    if (class_name && !st_lookup(class_name_table, (st_data_t)class_name, (st_data_t *)&new_line->class_name)) {
-        class_name = sanspleur_copy_string(class_name);
-        st_insert(class_name_table, (st_data_t)class_name, (st_data_t)class_name);
-        new_line->class_name = class_name;
-    }
-    */
-      
+    trace->push_stack_frame(file_name, line_number, class_name, function_id);      
 }
 
 #ifdef RUBY_VM
