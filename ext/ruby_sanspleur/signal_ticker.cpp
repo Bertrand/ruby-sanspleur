@@ -130,9 +130,9 @@ void SignalTicker::start()
 
     struct itimerspec timerspec;
     timerspec.it_interval.tv_sec = 0;
-    timerspec.it_interval.tv_nsec = _microseconds_interval;
+    timerspec.it_interval.tv_nsec = _microseconds_interval * 1000;
     timerspec.it_value.tv_sec = 0;
-    timerspec.it_value.tv_nsec = _microseconds_interval;  
+    timerspec.it_value.tv_nsec = _microseconds_interval * 1000;  
 
     if (timer_settime(timer_id, 0, &timerspec, NULL) != 0) {
         fprintf(stderr, "unable to set time on timer\n");
@@ -142,9 +142,9 @@ void SignalTicker::start()
 
     struct itimerval timerspec;
     timerspec.it_interval.tv_sec = 0;
-    timerspec.it_interval.tv_usec = _microseconds_interval * 1000;
+    timerspec.it_interval.tv_usec = _microseconds_interval;
     timerspec.it_value.tv_sec = 0;
-    timerspec.it_value.tv_usec = _microseconds_interval * 1000;
+    timerspec.it_value.tv_usec = _microseconds_interval;
     setitimer(TIMER_NUMBER, &timerspec, NULL);
 
 #endif
