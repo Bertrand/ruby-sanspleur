@@ -197,13 +197,13 @@ VALUE sanspleur_set_current_thread_to_sample(VALUE self)
     return Qnil;
 }
 
-VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE microseconds_interval, VALUE file_name, VALUE extra_info)
+VALUE sanspleur_start_sample(VALUE self, VALUE url, VALUE milliseconds_interval, VALUE file_name, VALUE extra_info)
 {
     DEBUG_PRINTF("Sampler: starting sampling session\n");
     int count = 0;
     const char *url_string = NULL;
     const char *extra_info_string = NULL;
-    long usleep_int = NUM2INT(microseconds_interval);
+    long usleep_int = NUM2INT(milliseconds_interval) * 1000;
     InfoHeader *info_header;
     const char *start_date;
     

@@ -32,7 +32,7 @@ module RubySanspleur
             :ruby_sanspleur_interval => 10
           }
           options = defaults_options.merge(query_hash.slice(*VALID_RUBY_SANSPLEUR_OPTIONS))
-          microseconds_interval = options[:ruby_sanspleur_interval].to_i * 1000 
+          milliseconds_interval = options[:ruby_sanspleur_interval].to_i
           timeout = options[:ruby_sanspleur_timeout] && options[:ruby_sanspleur_timeout].to_f
 
           # safe dirty way to get a temporary filename.  
@@ -41,7 +41,7 @@ module RubySanspleur
           tmpfile.close(true) # force deletion
 
           # start sampling
-          RubySanspleur.start_sample(env['HTTP_HOST'] + env["REQUEST_URI"], microseconds_interval, tracefile_path, nil)
+          RubySanspleur.start_sample(env['HTTP_HOST'] + env["REQUEST_URI"], milliseconds_interval, tracefile_path, nil)
           sampling_enabled = true
         end
       end
