@@ -28,7 +28,7 @@ static void print_stack_line(StackLine *line, char *line_prefix, int depth)
   if (line_prefix) {
     DEBUG_PRINTF("%s ", line_prefix);
   }
-  DEBUG_PRINTF("%s %s:%d\n", line->function_name, line->file_name, line->line_number);
+  DEBUG_PRINTF("%s %s:%llud\n", line->function_name, line->file_name, line->line_number);
 }
 
 static void print_stack_trace(StackTrace *trace)
