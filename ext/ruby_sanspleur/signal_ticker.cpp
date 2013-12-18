@@ -135,7 +135,8 @@ void SignalTicker::start()
     timerspec.it_value.tv_nsec = _microseconds_interval * 1000;  
 
     if (timer_settime(timer_id, 0, &timerspec, NULL) != 0) {
-        fprintf(stderr, "unable to set time on timer\n");
+    	perror("error : ");
+        fprintf(stderr, "unable to set time on timer (timerspec.it_interval.tv_nsec: %lld, timerspec.it_value.tv_nsec: %lld)\n", timerspec.it_interval.tv_nsec, timerspec.it_value.tv_nsec);
     };
 
 #else

@@ -30,7 +30,7 @@ end
 
 class SansPleurTest < Test::Unit::TestCase
   def test_bonjour
-    RubySanspleur.start_sample("pouet", 1000, "/tmp/glu.rubytrace", nil)
+    RubySanspleur.start_sample("pouet", 5, "/tmp/glu.rubytrace", nil)
     a = AClass.new
     a.long_loop
    	RubySanspleur.stop_sample("")
